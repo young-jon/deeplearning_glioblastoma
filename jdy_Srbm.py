@@ -266,9 +266,11 @@ class DBN(object):
     #     return train_fn, valid_score, test_score
 
 
-def test_DBN(finetune_lr=0.1, pretraining_epochs=2,
-             pretrain_lr=0.01, k=1, training_epochs=2,
+def test_DBN(finetune_lr=999, pretraining_epochs=2,
+             pretrain_lr=0.01, k=1, training_epochs=999,
              dataset='/Users/jon/Data/mnist/mnist.pkl.gz', batch_size=10):
+    ### finetune_lr and training_epochs not needed for pure DBN
+
     """
     Demonstrates how to train and test a Deep Belief Network.
 
@@ -314,8 +316,18 @@ def test_DBN(finetune_lr=0.1, pretraining_epochs=2,
 
     # construct the Deep Belief Network
     dbn = DBN(numpy_rng=numpy_rng, n_ins=28 * 28,
-              hidden_layers_sizes=[1000, 1000, 1000],
+              hidden_layers_sizes=[500, 250, 100],
               n_outs=10)
+
+    ### jdy code block
+    print dbn.params
+    print 'layer0'
+    print dbn.params[0].get_value()[0:3, 0:3]
+    print 'layer1'
+    print dbn.params[2].get_value()[0:3, 0:3]
+    print 'layer2'
+    print dbn.params[4].get_value()[0:3, 0:3]
+    ###
 
     #########################
     # PRETRAINING THE MODEL #
@@ -350,12 +362,35 @@ def test_DBN(finetune_lr=0.1, pretraining_epochs=2,
             print 'Pre-training layer %i, epoch %d, cost ' % (i, epoch),
             print numpy.mean(c)
 
+            ### jdy code block
+            print dbn.params 
+            print 'layer %i, epoch %d' % (i,epoch)
+            jdy_params0 = dbn.params[i * 2].get_value() 
+            print jdy_params0.shape
+            print jdy_params0[0:3, 0:3]
+            ###
+
     end_time = time.time()
     print >> sys.stderr, ('The pretraining code for file ' +
                           os.path.split(__file__)[1] +
                           ' ran for %.2fm' % ((end_time - start_time) / 60.))
 
-    return dbn
+    ### jdy code block
+    print i, epoch, batch_index
+    temp = pretraining_fns[i](index=batch_index, lr=pretrain_lr)
+    print temp
+    params = type(dbn.params[0])
+    print params
+
+
+    print dbn.params
+    print 'layer0'
+    print dbn.params[0].get_value()[0:3, 0:3]
+    print 'layer1'
+    print dbn.params[2].get_value()[0:3, 0:3]
+    print 'layer2'
+    print dbn.params[4].get_value()[0:3, 0:3]
+    ###
 
     ########################
     # FINETUNING THE MODEL #
