@@ -16,7 +16,7 @@ from logistic_sgd import LogisticRegression
 from mlp import HiddenLayer
 from rbm import RBM
 
-from utils_jdy import load_data
+from jdy_utils import load_data
 
 
 class DBN(object):
@@ -53,7 +53,7 @@ class DBN(object):
         :param n_outs: dimension of the output of the network
         """
 
-        self.sigmoid_layers = []
+        self.sigmoid_layers = []  ###change to dA_layers for DBN-DA
         self.rbm_layers = []
         self.params = []
         self.n_layers = len(hidden_layers_sizes)
@@ -67,6 +67,7 @@ class DBN(object):
         self.x = T.matrix('x')  # the data is presented as rasterized images
         self.y = T.ivector('y')  # the labels are presented as 1D vector
                                  # of [int] labels
+                                 ### delete for DBN-DA
 
         # The DBN is an MLP, for which all weights of intermediate
         # layers are shared with a different RBM.  We will first
@@ -95,23 +96,25 @@ class DBN(object):
             if i == 0:
                 layer_input = self.x
             else:
-                layer_input = self.sigmoid_layers[-1].output
+                layer_input = self.sigmoid_layers[-1].output  ### dA_layers
 
             sigmoid_layer = HiddenLayer(rng=numpy_rng,
                                         input=layer_input,
                                         n_in=input_size,
                                         n_out=hidden_layers_sizes[i],
                                         activation=T.nnet.sigmoid)
+                                        ### dA_layer
 
             # add the layer to our list of layers
-            self.sigmoid_layers.append(sigmoid_layer)
+            self.sigmoid_layers.append(sigmoid_layer) 
+            ###self.dA_layers.append(dA_layer)
 
             # its arguably a philosophical question...  but we are
             # going to only declare that the parameters of the
             # sigmoid_layers are parameters of the DBN. The visible
             # biases in the RBM are parameters of those RBMs, but not
             # of the DBN.
-            self.params.extend(sigmoid_layer.params)
+            self.params.extend(sigmoid_layer.params) ###dA_layer.params
 
             # Construct an RBM that shared weights with this layer
             rbm_layer = RBM(numpy_rng=numpy_rng,
@@ -119,11 +122,12 @@ class DBN(object):
                             input=layer_input,
                             n_visible=input_size,
                             n_hidden=hidden_layers_sizes[i],
-                            W=sigmoid_layer.W,
-                            hbias=sigmoid_layer.b)
+                            W=sigmoid_layer.W,  ###dA_layer.W
+                            hbias=sigmoid_layer.b)  ###dA_layer.b
             self.rbm_layers.append(rbm_layer)
 
         # We now need to add a logistic layer on top of the MLP
+        ###can remove this
         self.logLayer = LogisticRegression(
             input=self.sigmoid_layers[-1].output,
             n_in=hidden_layers_sizes[-1],
@@ -257,8 +261,8 @@ class DBN(object):
         return train_fn, valid_score, test_score
 
 
-def test_DBN(finetune_lr=0.1, pretraining_epochs=100,
-             pretrain_lr=0.01, k=1, training_epochs=1000,
+def test_DBN(finetune_lr=0.1, pretraining_epochs=2,
+             pretrain_lr=0.01, k=1, training_epochs=2,
              dataset='/Users/jon/Data/mnist/mnist.pkl.gz', batch_size=10):
     """
     Demonstrates how to train and test a Deep Belief Network.
@@ -267,18 +271,25 @@ def test_DBN(finetune_lr=0.1, pretraining_epochs=100,
 
     :type finetune_lr: float
     :param finetune_lr: learning rate used in the finetune stage
+    :default: 0.1
     :type pretraining_epochs: int
-    :param pretraining_epochs: number of epoch to do pretraining
+    :param pretraining_epochs: number of epoch to do pretraining 
+    :default: 100
     :type pretrain_lr: float
     :param pretrain_lr: learning rate to be used during pre-training
+    :default: 0.01
     :type k: int
     :param k: number of Gibbs steps in CD/PCD
+    :default: 1
     :type training_epochs: int
-    :param training_epochs: maximal number of iterations ot run the optimizer
+    :param training_epochs: maximal number of iterations to run the optimizer. 
+    :default: 1000
     :type dataset: string
     :param dataset: path the the pickled dataset
+    :default: 'mnist.pkl.gz'
     :type batch_size: int
     :param batch_size: the size of a minibatch
+    :default: 10
     """
 
     datasets = load_data(dataset)
@@ -288,7 +299,6 @@ def test_DBN(finetune_lr=0.1, pretraining_epochs=100,
     test_set_x, test_set_y = datasets[2]
 
     
-
     # compute number of minibatches for training, validation and testing
     n_train_batches = train_set_x.get_value(borrow=True).shape[0] / batch_size
     #print n_train_batches
@@ -305,13 +315,13 @@ def test_DBN(finetune_lr=0.1, pretraining_epochs=100,
     #########################
     # PRETRAINING THE MODEL #
     #########################
-'''    print '... getting the pretraining functions'
+    print '... getting the pretraining functions'
     pretraining_fns = dbn.pretraining_functions(train_set_x=train_set_x,
                                                 batch_size=batch_size,
                                                 k=k)
 
     print '... pre-training the model'
-    start_time = time.clock()
+    start_time = time.time()
     ## Pre-train layer-wise
     for i in xrange(dbn.n_layers):
         # go through pretraining epochs
@@ -324,7 +334,7 @@ def test_DBN(finetune_lr=0.1, pretraining_epochs=100,
             print 'Pre-training layer %i, epoch %d, cost ' % (i, epoch),
             print numpy.mean(c)
 
-    end_time = time.clock()
+    end_time = time.time()
     print >> sys.stderr, ('The pretraining code for file ' +
                           os.path.split(__file__)[1] +
                           ' ran for %.2fm' % ((end_time - start_time) / 60.))
@@ -355,7 +365,7 @@ def test_DBN(finetune_lr=0.1, pretraining_epochs=100,
     best_params = None
     best_validation_loss = numpy.inf
     test_score = 0.
-    start_time = time.clock()
+    start_time = time.time()
 
     done_looping = False
     epoch = 0
@@ -399,7 +409,7 @@ def test_DBN(finetune_lr=0.1, pretraining_epochs=100,
                 done_looping = True
                 break
 
-    end_time = time.clock()
+    end_time = time.time()
     print(('Optimization complete with best validation score of %f %%,'
            'with test performance %f %%') %
                  (best_validation_loss * 100., test_score * 100.))
@@ -407,7 +417,7 @@ def test_DBN(finetune_lr=0.1, pretraining_epochs=100,
                           os.path.split(__file__)[1] +
                           ' ran for %.2fm' % ((end_time - start_time)
                                               / 60.))
-'''
+
 
 if __name__ == '__main__':
     test_DBN()
