@@ -401,20 +401,21 @@ def test_DBN(finetune_lr=999, pretraining_epochs=1,
     ### scikit learn and pylearn2 use pickle, so maybe i should too.
     '''numpy.save('arrays.npy', dbn.params)'''
 
+    ###USE
     out=[]
     for arr in dbn.params:
         out.append(arr.get_value())
     numpy.save('arrays.npy', out)
     ### numpy.save seems to automatically convert a list to a numpy array. seems
     ### to use dtype=float64
-    ### could use numpy.asarray(<list of arrays>). look at documentation
 
     '''p=[]
     for arr in dbn.params:
         p.append(arr.get_value())
     numpy.savez('arrays.npz', w1=p[0],b1=p[1],w2=p[2],b2=p[3],w3=p[4],b3=p[5])'''
 
-    '''f = file('objects.pkl', 'wb')
+    '''USE
+    f = file('objects.pkl', 'wb')
     for obj in dbn.params:
         cPickle.dump(obj.get_value(), f, protocol=cPickle.HIGHEST_PROTOCOL)
     f.close()'''
@@ -422,7 +423,8 @@ def test_DBN(finetune_lr=999, pretraining_epochs=1,
     ### save dbn object as a pickle file that has the final state of the shared
     ### variables (params). See the following theano tutorial url:
     ### http://deeplearning.net/software/theano/tutorial/loading_and_saving.html
-    '''f = file('obj.save', 'wb')
+    '''USE
+    f = file('obj.save', 'wb')
     cPickle.dump(dbn, f, protocol=cPickle.HIGHEST_PROTOCOL)
     f.close()'''
 
@@ -516,4 +518,265 @@ def test_DBN(finetune_lr=999, pretraining_epochs=1,
 
 
 if __name__ == '__main__':
-    test_DBN()
+    ###test_DBN()
+
+    # def test_DBN(finetune_lr=999, pretraining_epochs=1,
+    #             pretrain_lr=0.01, k=1, training_epochs=999,
+    #             dataset='/Users/jon/Data/mnist/mnist.pkl.gz', batch_size=10):
+    #     ### finetune_lr and training_epochs not needed for pure DBN
+
+    finetune_lr=999
+    pretraining_epochs=1
+    pretrain_lr=0.01
+    k=1
+    training_epochs=999
+    dataset='/Users/jon/Data/mnist/mnist.pkl.gz'
+    batch_size=10
+
+
+    """
+    Demonstrates how to train and test a Deep Belief Network.
+
+    This is demonstrated on MNIST.
+
+    :type finetune_lr: float
+    :param finetune_lr: learning rate used in the finetune stage
+    :default: 0.1
+    :type pretraining_epochs: int
+    :param pretraining_epochs: number of epoch to do pretraining 
+    :default: 100
+    :type pretrain_lr: float
+    :param pretrain_lr: learning rate to be used during pre-training
+    :default: 0.01
+    :type k: int
+    :param k: number of Gibbs steps in CD/PCD
+    :default: 1
+    :type training_epochs: int
+    :param training_epochs: maximal number of iterations to run the optimizer. 
+    :default: 1000
+    :type dataset: string
+    :param dataset: path the the pickled dataset
+    :default: 'mnist.pkl.gz'
+    :type batch_size: int
+    :param batch_size: the size of a minibatch
+    :default: 10
+    """
+
+    datasets = load_data(dataset)
+
+    train_set_x, train_set_y = datasets[0]
+    valid_set_x, valid_set_y = datasets[1]
+    test_set_x, test_set_y = datasets[2]
+
+    
+    # compute number of minibatches for training, validation and testing
+    n_train_batches = train_set_x.get_value(borrow=True).shape[0] / batch_size
+    #print n_train_batches
+
+    # numpy random generator
+    numpy_rng = numpy.random.RandomState(123)
+    print '... building the model'
+
+    # construct the Deep Belief Network
+    dbn = DBN(numpy_rng=numpy_rng, n_ins=28 * 28,
+              hidden_layers_sizes=[500, 250, 100],
+              n_outs=10)
+
+    ### jdy code block
+    print dbn.params
+    print 'layer0'
+    print dbn.params[0].get_value()[0:3, 0:3]
+    print 'layer1'
+    print dbn.params[2].get_value()[0:3, 0:3]
+    print 'layer2'
+    print dbn.params[4].get_value()[0:3, 0:3]
+    ###
+
+    #########################
+    # PRETRAINING THE MODEL #
+    #########################
+    print '... getting the pretraining functions'
+    ### creates a list of pretraining fxns for each layer in the DBN. This is
+    ### where the self.sigmoid_layer[-1].output is needed -- to create the 
+    ### appropriate equation/function for pretraining
+    pretraining_fns = dbn.pretraining_functions(train_set_x=train_set_x,
+                                                batch_size=batch_size,
+                                                k=k)
+
+    ### *note
+    '''Now any function pretrain_fns[i] takes as arguments index and optionally 
+    lr - the learning rate. Note that the names of the parameters are the names
+    given to the Theano variables (e.g. lr) when they are constructed and not 
+    the python variables (e.g. learning_rate).'''
+    
+
+    print '... pre-training the model'
+    start_time = time.time()
+    ## Pre-train layer-wise
+    for i in xrange(dbn.n_layers):
+        # go through pretraining epochs
+        for epoch in xrange(pretraining_epochs):
+            # go through the training set
+            c = []
+            for batch_index in xrange(n_train_batches):
+                c.append(pretraining_fns[i](index=batch_index,
+                                            lr=pretrain_lr))
+                ### see *note above
+
+                ### for each function call of the pretraining fns, the states 
+                ### of the shared variables (e.g. self.params) are updated.
+                ### pretraining_fns = list of cost/update functions for each
+                ### layer of DBN. Each call to this fxn returns the cost and 
+                ### updates the parameters for that layer. See 'Shared Variable'  
+                ### section here: http://deeplearning.net/software/theano/tutorial/examples.html#logistic-function
+            print 'Pre-training layer %i, epoch %d, cost ' % (i, epoch),
+            print numpy.mean(c)
+
+            ### jdy code block
+            print dbn.params 
+            print 'layer %i, epoch %d' % (i,epoch)
+            jdy_params0 = dbn.params[i * 2].get_value() 
+            print jdy_params0.shape
+            print jdy_params0[0:3, 0:3]
+            ###
+
+    end_time = time.time()
+    print >> sys.stderr, ('The pretraining code for file ' +
+                          os.path.split(__file__)[1] +
+                          ' ran for %.2fm' % ((end_time - start_time) / 60.))
+
+    ### jdy code block
+    print i, epoch, batch_index
+    temp = pretraining_fns[i](index=batch_index, lr=pretrain_lr)
+    print temp
+    params = type(dbn.params[0])
+    print params
+
+
+    print dbn.params
+    print 'layer0'
+    print dbn.params[0].get_value()[0:3, 0:3]
+    print 'layer1'
+    print dbn.params[2].get_value()[0:3, 0:3]
+    print 'layer2'
+    print dbn.params[4].get_value()[0:3, 0:3]
+
+    ### scikit learn and pylearn2 use pickle, so maybe i should too.
+    '''numpy.save('arrays.npy', dbn.params)'''
+    
+    ###USE
+    out=[]
+    for arr in dbn.params:
+        out.append(arr.get_value())
+    numpy.save('arrays.npy', out)
+    ### numpy.save seems to automatically convert a list to a numpy array. seems
+    ### to use dtype=float64
+    ### could use numpy.asarray(<list of arrays>). look at documentation
+
+    '''p=[]
+    for arr in dbn.params:
+        p.append(arr.get_value())
+    numpy.savez('arrays.npz', w1=p[0],b1=p[1],w2=p[2],b2=p[3],w3=p[4],b3=p[5])'''
+
+    '''USE
+    f = file('objects.pkl', 'wb')
+    for obj in dbn.params:
+        cPickle.dump(obj.get_value(), f, protocol=cPickle.HIGHEST_PROTOCOL)
+    f.close()'''
+
+    ### save dbn object as a pickle file that has the final state of the shared
+    ### variables (params). See the following theano tutorial url:
+    ### http://deeplearning.net/software/theano/tutorial/loading_and_saving.html
+    '''USE
+    f = file('obj.save', 'wb')
+    cPickle.dump(dbn, f, protocol=cPickle.HIGHEST_PROTOCOL)
+    f.close()'''
+
+    ### To load dbn object 
+    '''f = file('obj.save', 'rb')
+    loaded_obj = cPickle.load(f)
+    f.close()
+
+    In [57]: loaded_obj.params[0].get_value().shape
+    Out[57]: (784, 500)'''
+    ###
+
+    ########################
+    # FINETUNING THE MODEL #
+    ########################
+
+    # # get the training, validation and testing function for the model
+    # print '... getting the finetuning functions'
+    # train_fn, validate_model, test_model = dbn.build_finetune_functions(
+    #             datasets=datasets, batch_size=batch_size,
+    #             learning_rate=finetune_lr)
+
+    # print '... finetunning the model'
+    # # early-stopping parameters
+    # patience = 4 * n_train_batches  # look as this many examples regardless
+    # patience_increase = 2.    # wait this much longer when a new best is
+    #                           # found
+    # improvement_threshold = 0.995  # a relative improvement of this much is
+    #                                # considered significant
+    # validation_frequency = min(n_train_batches, patience / 2)
+    #                               # go through this many
+    #                               # minibatche before checking the network
+    #                               # on the validation set; in this case we
+    #                               # check every epoch
+
+    # best_params = None
+    # best_validation_loss = numpy.inf
+    # test_score = 0.
+    # start_time = time.time()
+
+    # done_looping = False
+    # epoch = 0
+
+    # while (epoch < training_epochs) and (not done_looping):
+    #     epoch = epoch + 1
+    #     for minibatch_index in xrange(n_train_batches):
+
+    #         minibatch_avg_cost = train_fn(minibatch_index)
+    #         iter = (epoch - 1) * n_train_batches + minibatch_index
+
+    #         if (iter + 1) % validation_frequency == 0:
+
+    #             validation_losses = validate_model()
+    #             this_validation_loss = numpy.mean(validation_losses)
+    #             print('epoch %i, minibatch %i/%i, validation error %f %%' % \
+    #                   (epoch, minibatch_index + 1, n_train_batches,
+    #                    this_validation_loss * 100.))
+
+    #             # if we got the best validation score until now
+    #             if this_validation_loss < best_validation_loss:
+
+    #                 #improve patience if loss improvement is good enough
+    #                 if (this_validation_loss < best_validation_loss *
+    #                     improvement_threshold):
+    #                     patience = max(patience, iter * patience_increase)
+
+    #                 # save best validation score and iteration number
+    #                 best_validation_loss = this_validation_loss
+    #                 best_iter = iter
+
+    #                 # test it on the test set
+    #                 test_losses = test_model()
+    #                 test_score = numpy.mean(test_losses)
+    #                 print(('     epoch %i, minibatch %i/%i, test error of '
+    #                        'best model %f %%') %
+    #                       (epoch, minibatch_index + 1, n_train_batches,
+    #                        test_score * 100.))
+
+    #         if patience <= iter:
+    #             done_looping = True
+    #             break
+
+    # end_time = time.time()
+    # print(('Optimization complete with best validation score of %f %%,'
+    #        'with test performance %f %%') %
+    #              (best_validation_loss * 100., test_score * 100.))
+    # print >> sys.stderr, ('The fine tuning code for file ' +
+    #                       os.path.split(__file__)[1] +
+    #                       ' ran for %.2fm' % ((end_time - start_time)
+    #                                           / 60.))
+    
