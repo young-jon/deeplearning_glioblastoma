@@ -365,8 +365,8 @@ class SRBM_SA(object):
         ### end jdy code block
 
 
-def test_SRBM_SA(finetune_lr=0.1, pretraining_epochs=10,
-             pretrain_lr=0.1, k=1, training_epochs=50,
+def test_SRBM_SA(finetune_lr=0.1, pretraining_epochs=1,
+             pretrain_lr=0.1, k=1, training_epochs=1,
              dataset='/Users/jon/Data/mnist/mnist.pkl.gz', batch_size=10):
     ### finetune_lr and training_epochs not needed for SRBM
 
@@ -403,7 +403,6 @@ def test_SRBM_SA(finetune_lr=0.1, pretraining_epochs=10,
     train_set_x, train_set_y = datasets[0]
     valid_set_x, valid_set_y = datasets[1]
     test_set_x, test_set_y = datasets[2]
-
     
     # compute number of minibatches for training, validation and testing
     n_train_batches = train_set_x.get_value(borrow=True).shape[0] / batch_size
@@ -471,12 +470,13 @@ def test_SRBM_SA(finetune_lr=0.1, pretraining_epochs=10,
             print numpy.mean(c)
 
             ### jdy code block
-            print srbm_sa.params 
-            print 'layer %i, epoch %d' % (i,epoch)
-            jdy_params0 = srbm_sa.params[i * 2].get_value() 
-            print jdy_params0.shape
-            print jdy_params0[0:3, 0:3]
+            # print srbm_sa.params 
+            # print 'layer %i, epoch %d' % (i,epoch)
+            # jdy_params0 = srbm_sa.params[i * 2].get_value() 
+            # print jdy_params0.shape
+            # print jdy_params0[0:3, 0:3]
             ###
+            
 
     end_time = time.time()  ###changed time.clock() to time.time()
     print >> sys.stderr, ('The pretraining code for file ' +
@@ -484,22 +484,22 @@ def test_SRBM_SA(finetune_lr=0.1, pretraining_epochs=10,
                           ' ran for %.2fm' % ((end_time - start_time) / 60.))
 
     ### jdy code block
-    print i, epoch, batch_index
-    ### temp = pretraining_fns[i](index=batch_index,lr=pretrain_lr))
-    ### Running the line above changes the weights in layer 3 by a very small
-    ### amount leading to a minimal change in cost. any time pretraining_fns[i] 
-    ### is called it will update the shared variables for that layer only.
-    params = type(srbm_sa.params[0])
-    print params
+    # print i, epoch, batch_index
+    # ### temp = pretraining_fns[i](index=batch_index,lr=pretrain_lr))
+    # ### Running the line above changes the weights in layer 3 by a very small
+    # ### amount leading to a minimal change in cost. any time pretraining_fns[i] 
+    # ### is called it will update the shared variables for that layer only.
+    # params = type(srbm_sa.params[0])
+    # print params
 
 
-    print srbm_sa.params
-    print 'layer0'
-    print srbm_sa.params[0].get_value()[0:3, 0:3]
-    print 'layer1'
-    print srbm_sa.params[2].get_value()[0:3, 0:3]
-    print 'layer2'
-    print srbm_sa.params[4].get_value()[0:3, 0:3]
+    # print srbm_sa.params
+    # print 'layer0'
+    # print srbm_sa.params[0].get_value()[0:3, 0:3]
+    # print 'layer1'
+    # print srbm_sa.params[2].get_value()[0:3, 0:3]
+    # print 'layer2'
+    # print srbm_sa.params[4].get_value()[0:3, 0:3]
     ###
 
     # save_short(srbm_sa, '/Users/jon/models/DBNDA_theano/model_test.pkl')
@@ -544,11 +544,11 @@ def test_SRBM_SA(finetune_lr=0.1, pretraining_epochs=10,
             print numpy.mean(t_cost)
 
             ### jdy code block
-            print srbm_sa.params 
-            print 'layer %i, epoch %d' % (layer,ep)
-            jdy_params0train = srbm_sa.params[layer * 2].get_value() 
-            print jdy_params0train.shape
-            print jdy_params0train[0:3, 0:3]
+            # print srbm_sa.params 
+            # print 'layer %i, epoch %d' % (layer,ep)
+            # jdy_params0train = srbm_sa.params[layer * 2].get_value() 
+            # print jdy_params0train.shape
+            # print jdy_params0train[0:3, 0:3]
             ###
 
     e_time = time.time()  ###changed time.clock() to time.time()
@@ -558,18 +558,18 @@ def test_SRBM_SA(finetune_lr=0.1, pretraining_epochs=10,
 
 
     ### jdy code block
-    print layer, ep, b_index
-    params = type(srbm_sa.params[0])
-    print params
+    # print layer, ep, b_index
+    # params = type(srbm_sa.params[0])
+    # print params
 
 
-    print srbm_sa.params
-    print 'layer0'
-    print srbm_sa.params[0].get_value()[0:3, 0:3]
-    print 'layer1'
-    print srbm_sa.params[2].get_value()[0:3, 0:3]
-    print 'layer2'
-    print srbm_sa.params[4].get_value()[0:3, 0:3]
+    # print srbm_sa.params
+    # print 'layer0'
+    # print srbm_sa.params[0].get_value()[0:3, 0:3]
+    # print 'layer1'
+    # print srbm_sa.params[2].get_value()[0:3, 0:3]
+    # print 'layer2'
+    # print srbm_sa.params[4].get_value()[0:3, 0:3]
     ###
 
     # train_fn, validate_model, test_model = srbm_sa.build_finetune_functions(
