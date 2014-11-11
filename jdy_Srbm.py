@@ -188,7 +188,7 @@ class DBN(object):
             fn = theano.function(inputs=[index,
                             theano.Param(learning_rate, default=0.1)],
                                  outputs=cost,
-                                 updates=updates,
+                                 updates=updates, ### how to update shared vars.
                                  givens={self.x:
                                     train_set_x[batch_begin:batch_end]})
             # append `fn` to the list of functions
@@ -266,7 +266,7 @@ class DBN(object):
     #     return train_fn, valid_score, test_score
 
 
-def test_DBN(finetune_lr=999, pretraining_epochs=2,
+def test_DBN(finetune_lr=999, pretraining_epochs=1,
              pretrain_lr=0.01, k=1, training_epochs=999,
              dataset='/Users/jon/Data/mnist/mnist.pkl.gz', batch_size=10):
     ### finetune_lr and training_epochs not needed for pure DBN
@@ -359,6 +359,13 @@ def test_DBN(finetune_lr=999, pretraining_epochs=2,
                 c.append(pretraining_fns[i](index=batch_index,
                                             lr=pretrain_lr))
                 ### see *note above
+
+                ### for each function call of the pretraining fns, the states 
+                ### of the shared variables (e.g. self.params) are updated.
+                ### pretraining_fns = list of cost/update functions for each
+                ### layer of DBN. Each call to this fxn returns the cost and 
+                ### updates the parameters for that layer. See 'Shared Variable'  
+                ### section here: http://deeplearning.net/software/theano/tutorial/examples.html#logistic-function
             print 'Pre-training layer %i, epoch %d, cost ' % (i, epoch),
             print numpy.mean(c)
 
@@ -390,6 +397,42 @@ def test_DBN(finetune_lr=999, pretraining_epochs=2,
     print dbn.params[2].get_value()[0:3, 0:3]
     print 'layer2'
     print dbn.params[4].get_value()[0:3, 0:3]
+
+    ### scikit learn and pylearn2 use pickle, so maybe i should too.
+    '''numpy.save('arrays.npy', dbn.params)'''
+
+    out=[]
+    for arr in dbn.params:
+        out.append(arr.get_value())
+    numpy.save('arrays.npy', out)
+    ### numpy.save seems to automatically convert a list to a numpy array. seems
+    ### to use dtype=float64
+    ### could use numpy.asarray(<list of arrays>). look at documentation
+
+    '''p=[]
+    for arr in dbn.params:
+        p.append(arr.get_value())
+    numpy.savez('arrays.npz', w1=p[0],b1=p[1],w2=p[2],b2=p[3],w3=p[4],b3=p[5])'''
+
+    '''f = file('objects.pkl', 'wb')
+    for obj in dbn.params:
+        cPickle.dump(obj.get_value(), f, protocol=cPickle.HIGHEST_PROTOCOL)
+    f.close()'''
+
+    ### save dbn object as a pickle file that has the final state of the shared
+    ### variables (params). See the following theano tutorial url:
+    ### http://deeplearning.net/software/theano/tutorial/loading_and_saving.html
+    '''f = file('obj.save', 'wb')
+    cPickle.dump(dbn, f, protocol=cPickle.HIGHEST_PROTOCOL)
+    f.close()'''
+
+    ### To load dbn object 
+    '''f = file('obj.save', 'rb')
+    loaded_obj = cPickle.load(f)
+    f.close()
+
+    In [57]: loaded_obj.params[0].get_value().shape
+    Out[57]: (784, 500)'''
     ###
 
     ########################
