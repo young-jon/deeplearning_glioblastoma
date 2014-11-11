@@ -18,6 +18,7 @@ from rbm_visualize import RBM  ### change this when not tyring to visualize the 
 
 from jdy_A import A
 from jdy_utils import load_data, save_short, save_med_pkl, save_med_npy
+from jdy_visualize import create_images
 
 
 class SRBM_SA(object): 
@@ -366,9 +367,9 @@ class SRBM_SA(object):
         ### end jdy code block
 
 
-def test_SRBM_SA(finetune_lr=0.1, pretraining_epochs=1,
+def test_SRBM_SA(finetune_lr=0.1, pretraining_epochs=11,
              pretrain_lr=0.1, k=1, training_epochs=1,
-             dataset='/Users/jon/Data/mnist/mnist.pkl.gz', batch_size=10):
+             dataset='/Users/jdy10/Data/mnist/mnist.pkl.gz', batch_size=10):
     ### finetune_lr and training_epochs not needed for SRBM
 
     """
@@ -486,7 +487,21 @@ def test_SRBM_SA(finetune_lr=0.1, pretraining_epochs=1,
             print 'Pre-training layer %i, epoch %d, cost ' % (i, epoch),
             print numpy.mean(c)
             
-            print type(r)
+            ### add reconstructions to all_images at epochs 1 and 10 of pretraining
+            if i == 0 and epoch == 0:
+                r_3d_ndarray = numpy.asarray(r)
+                r_2d_ndarray = r_3d_ndarray.reshape(50000,784)
+                all_images[20:40] = r_2d_ndarray[311:331]
+                print 'HERE epoch 1'
+
+            if i == 0 and epoch == 9:
+                r_3d_ndarray = numpy.asarray(r)
+                r_2d_ndarray = r_3d_ndarray.reshape(50000,784)
+                all_images[40:60] = r_2d_ndarray[311:331]
+                print 'HERE epoch 10'
+
+
+            '''print type(r)
             print type(r[2])
             print r[2].shape
             print r[2].size
@@ -499,7 +514,8 @@ def test_SRBM_SA(finetune_lr=0.1, pretraining_epochs=1,
             print r[0].shape
             print r[1].shape
             print r[2][9]
-            print r.size
+            return r[30][0] ### should be x sample 311 (r[30][9] is 320, r[31][9] is 330, r[32][0] is 321)
+            print r.size'''
 
             ### jdy code block
             # print srbm_sa.params 
@@ -513,6 +529,9 @@ def test_SRBM_SA(finetune_lr=0.1, pretraining_epochs=1,
     print >> sys.stderr, ('The pretraining code for file ' +
                           os.path.split(__file__)[1] +
                           ' ran for %.2fm' % ((end_time - start_time) / 60.))
+
+    ### save images to file
+    create_images(all_images, 3, 20)
 
     ### jdy code block
     # print i, epoch, batch_index
