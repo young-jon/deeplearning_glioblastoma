@@ -206,74 +206,7 @@ class SRBM(object):
 
         return pretrain_fns
 
-    # def build_finetune_functions(self, datasets, batch_size, learning_rate):
-    #     '''Generates a function `train` that implements one step of
-    #     finetuning, a function `validate` that computes the error on a
-    #     batch from the validation set, and a function `test` that
-    #     computes the error on a batch from the testing set
-
-    #     :type datasets: list of pairs of theano.tensor.TensorType
-    #     :param datasets: It is a list that contain all the datasets;
-    #                     the has to contain three pairs, `train`,
-    #                     `valid`, `test` in this order, where each pair
-    #                     is formed of two Theano variables, one for the
-    #                     datapoints, the other for the labels
-    #     :type batch_size: int
-    #     :param batch_size: size of a minibatch
-    #     :type learning_rate: float
-    #     :param learning_rate: learning rate used during finetune stage
-
-    #     '''
-
-    #     (train_set_x, train_set_y) = datasets[0]
-    #     (valid_set_x, valid_set_y) = datasets[1]
-    #     (test_set_x, test_set_y) = datasets[2]
-
-    #     # compute number of minibatches for training, validation and testing
-    #     n_valid_batches = valid_set_x.get_value(borrow=True).shape[0]
-    #     n_valid_batches /= batch_size
-    #     n_test_batches = test_set_x.get_value(borrow=True).shape[0]
-    #     n_test_batches /= batch_size
-
-    #     index = T.lscalar('index')  # index to a [mini]batch
-
-    #     # compute the gradients with respect to the model parameters
-    #     gparams = T.grad(self.finetune_cost, self.params)
-
-    #     # compute list of fine-tuning updates
-    #     updates = []
-    #     for param, gparam in zip(self.params, gparams):
-    #         updates.append((param, param - gparam * learning_rate))
-
-    #     train_fn = theano.function(inputs=[index],
-    #           outputs=self.finetune_cost,
-    #           updates=updates,
-    #           givens={self.x: train_set_x[index * batch_size:
-    #                                       (index + 1) * batch_size],
-    #                   self.y: train_set_y[index * batch_size:
-    #                                       (index + 1) * batch_size]})
-
-    #     test_score_i = theano.function([index], self.errors,
-    #              givens={self.x: test_set_x[index * batch_size:
-    #                                         (index + 1) * batch_size],
-    #                      self.y: test_set_y[index * batch_size:
-    #                                         (index + 1) * batch_size]})
-
-    #     valid_score_i = theano.function([index], self.errors,
-    #           givens={self.x: valid_set_x[index * batch_size:
-    #                                       (index + 1) * batch_size],
-    #                   self.y: valid_set_y[index * batch_size:
-    #                                       (index + 1) * batch_size]})
-
-    #     # Create a function that scans the entire validation set
-    #     def valid_score():
-    #         return [valid_score_i(i) for i in xrange(n_valid_batches)]
-
-    #     # Create a function that scans the entire test set
-    #     def test_score():
-    #         return [test_score_i(i) for i in xrange(n_test_batches)]
-
-    #     return train_fn, valid_score, test_score
+        ###deleted def build_finetune_functions
 
 
 def test_SRBM(finetune_lr=999, pretraining_epochs=2,
@@ -380,11 +313,11 @@ def test_SRBM(finetune_lr=999, pretraining_epochs=2,
             print numpy.mean(c)
 
             ### jdy code block
-            print srbm.params 
-            print 'layer %i, epoch %d' % (i,epoch)
-            jdy_params0 = srbm.params[i * 2].get_value() 
-            print jdy_params0.shape
-            print jdy_params0[0:3, 0:3]
+            # print srbm.params 
+            # print 'layer %i, epoch %d' % (i,epoch)
+            # jdy_params0 = srbm.params[i * 2].get_value() 
+            # print jdy_params0.shape
+            # print jdy_params0[0:3, 0:3]
             ###
 
     end_time = time.time()
@@ -392,105 +325,31 @@ def test_SRBM(finetune_lr=999, pretraining_epochs=2,
                           os.path.split(__file__)[1] +
                           ' ran for %.2fm' % ((end_time - start_time) / 60.))
 
-    ### jdy code block
-    print i, epoch, batch_index
-    temp = pretraining_fns[i](index=batch_index, lr=pretrain_lr)
-    print temp
-    params = type(srbm.params[0])
-    print params
+    ###jdy code block
+    # print i, epoch, batch_index
+    # temp = pretraining_fns[i](index=batch_index,lr=pretrain_lr))
+    ### Running the line above changes the weights in layer 3 by a very small
+    ### amount leading to a minimal change in cost. any time pretraining_fns[i] 
+    ### is called it will update the shared variables for that layer only.
+    # print temp
+    # params = type(srbm_sa.params[0])
+    # print params
 
 
-    print srbm.params
-    print 'layer0'
-    print srbm.params[0].get_value()[0:3, 0:3]
-    print 'layer1'
-    print srbm.params[2].get_value()[0:3, 0:3]
-    print 'layer2'
-    print srbm.params[4].get_value()[0:3, 0:3]
-    ###
+    # print srbm.params
+    # print 'layer0'
+    # print srbm.params[0].get_value()[0:3, 0:3]
+    # print 'layer1'
+    # print srbm.params[2].get_value()[0:3, 0:3]
+    # print 'layer2'
+    # print srbm.params[4].get_value()[0:3, 0:3]
+    # ###
 
-    save_short(srbm, '/Users/jon/models/DBNDA_theano/model_test.pkl')
-    save_med_pkl(srbm, '/Users/jon/models/DBNDA_theano/model_test2.pkl')
-    save_med_npy(srbm, '/Users/jon/models/DBNDA_theano/model_test3.npy')
+    # save_short(srbm, '/Users/jon/models/DBNDA_theano/model_test.pkl')
+    # save_med_pkl(srbm, '/Users/jon/models/DBNDA_theano/model_test2.pkl')
+    # save_med_npy(srbm, '/Users/jon/models/DBNDA_theano/model_test3.npy')
 
-    ########################
-    # FINETUNING THE MODEL #
-    ########################
-
-    # # get the training, validation and testing function for the model
-    # print '... getting the finetuning functions'
-    # train_fn, validate_model, test_model = srbm.build_finetune_functions(
-    #             datasets=datasets, batch_size=batch_size,
-    #             learning_rate=finetune_lr)
-
-    # print '... finetunning the model'
-    # # early-stopping parameters
-    # patience = 4 * n_train_batches  # look as this many examples regardless
-    # patience_increase = 2.    # wait this much longer when a new best is
-    #                           # found
-    # improvement_threshold = 0.995  # a relative improvement of this much is
-    #                                # considered significant
-    # validation_frequency = min(n_train_batches, patience / 2)
-    #                               # go through this many
-    #                               # minibatche before checking the network
-    #                               # on the validation set; in this case we
-    #                               # check every epoch
-
-    # best_params = None
-    # best_validation_loss = numpy.inf
-    # test_score = 0.
-    # start_time = time.time()
-
-    # done_looping = False
-    # epoch = 0
-
-    # while (epoch < training_epochs) and (not done_looping):
-    #     epoch = epoch + 1
-    #     for minibatch_index in xrange(n_train_batches):
-
-    #         minibatch_avg_cost = train_fn(minibatch_index)
-    #         iter = (epoch - 1) * n_train_batches + minibatch_index
-
-    #         if (iter + 1) % validation_frequency == 0:
-
-    #             validation_losses = validate_model()
-    #             this_validation_loss = numpy.mean(validation_losses)
-    #             print('epoch %i, minibatch %i/%i, validation error %f %%' % \
-    #                   (epoch, minibatch_index + 1, n_train_batches,
-    #                    this_validation_loss * 100.))
-
-    #             # if we got the best validation score until now
-    #             if this_validation_loss < best_validation_loss:
-
-    #                 #improve patience if loss improvement is good enough
-    #                 if (this_validation_loss < best_validation_loss *
-    #                     improvement_threshold):
-    #                     patience = max(patience, iter * patience_increase)
-
-    #                 # save best validation score and iteration number
-    #                 best_validation_loss = this_validation_loss
-    #                 best_iter = iter
-
-    #                 # test it on the test set
-    #                 test_losses = test_model()
-    #                 test_score = numpy.mean(test_losses)
-    #                 print(('     epoch %i, minibatch %i/%i, test error of '
-    #                        'best model %f %%') %
-    #                       (epoch, minibatch_index + 1, n_train_batches,
-    #                        test_score * 100.))
-
-    #         if patience <= iter:
-    #             done_looping = True
-    #             break
-
-    # end_time = time.time()
-    # print(('Optimization complete with best validation score of %f %%,'
-    #        'with test performance %f %%') %
-    #              (best_validation_loss * 100., test_score * 100.))
-    # print >> sys.stderr, ('The fine tuning code for file ' +
-    #                       os.path.split(__file__)[1] +
-    #                       ' ran for %.2fm' % ((end_time - start_time)
-    #                                           / 60.))
+    ###deleted 'finetuning the model'
 
 
 if __name__ == '__main__':
