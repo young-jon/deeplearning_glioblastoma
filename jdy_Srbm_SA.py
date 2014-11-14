@@ -16,6 +16,7 @@ from theano.tensor.shared_randomstreams import RandomStreams
 from mlp import HiddenLayer
 from rbm import RBM
 
+from jdy_A import A
 from jdy_utils import load_data, save_short, save_med_pkl, save_med_npy
 
 
@@ -66,6 +67,7 @@ class SRBM_SA(object):
         self.sigmoid_layers = []  ###think of as a list of hidden layers to make
         ### it easier to get input for each rbm.
         self.rbm_layers = []
+        self.A_layers = []
         self.params = []
         self.n_layers = len(hidden_layers_sizes)
 
@@ -142,6 +144,16 @@ class SRBM_SA(object):
                             hbias=sigmoid_layer.b)  
             self.rbm_layers.append(rbm_layer)
 
+            # Construct an autoencoder that shares weights with the sigmoid and
+            # rbm layers
+            A_layer = A(numpy_rng=numpy_rng,
+                          theano_rng=theano_rng,
+                          input=layer_input,
+                          n_visible=input_size,
+                          n_hidden=hidden_layers_sizes[i],
+                          W=sigmoid_layer.W,
+                          bhid=sigmoid_layer.b)
+            self.A_layers.append(A_layer) 
 
         # We now need to add a logistic layer on top of the MLP
         ###can remove this
@@ -213,144 +225,144 @@ class SRBM_SA(object):
 
         return pretrain_fns
 
-    # def build_finetune_functions(self, train_set_x, valid_set_x, test_set_x, 
-    #                         batch_size): 
-    #     ### removed learning_rate from function parameters
-    #     '''Generates a function `train` that implements one step of
-    #     finetuning, a function `validate` that computes the error on a
-    #     batch from the validation set, and a function `test` that
-    #     computes the error on a batch from the testing set
+    def build_finetune_functions(self, train_set_x, valid_set_x, test_set_x, 
+                            batch_size): 
+        ### removed learning_rate from function parameters
+        '''Generates a function `train` that implements one step of
+        finetuning, a function `validate` that computes the error on a
+        batch from the validation set, and a function `test` that
+        computes the error on a batch from the testing set
 
-    #     :type datasets: list of pairs of theano.tensor.TensorType
-    #     :param datasets: It is a list that contain all the datasets;
-    #                     the has to contain three pairs, `train`,
-    #                     `valid`, `test` in this order, where each pair
-    #                     is formed of two Theano variables, one for the
-    #                     datapoints, the other for the labels
-    #     :type batch_size: int
-    #     :param batch_size: size of a minibatch
-    #     :type learning_rate: float
-    #     :param learning_rate: learning rate used during finetune stage
+        :type datasets: list of pairs of theano.tensor.TensorType
+        :param datasets: It is a list that contain all the datasets;
+                        the has to contain three pairs, `train`,
+                        `valid`, `test` in this order, where each pair
+                        is formed of two Theano variables, one for the
+                        datapoints, the other for the labels
+        :type batch_size: int
+        :param batch_size: size of a minibatch
+        :type learning_rate: float
+        :param learning_rate: learning rate used during finetune stage
 
-    #     '''
-    #     ### passed in the appropriate data so don't to do this
-    #     # (train_set_x, train_set_y) = datasets[0]
-    #     # (valid_set_x, valid_set_y) = datasets[1]
-    #     # (test_set_x, test_set_y) = datasets[2]
+        '''
+        ### passed in the appropriate data so don't to do this
+        # (train_set_x, train_set_y) = datasets[0]
+        # (valid_set_x, valid_set_y) = datasets[1]
+        # (test_set_x, test_set_y) = datasets[2]
 
-    #     ### compute number of minibatches for validation and testing
-    #     n_valid_batches = valid_set_x.get_value(borrow=True).shape[0]
-    #     n_valid_batches /= batch_size
-    #     n_test_batches = test_set_x.get_value(borrow=True).shape[0]
-    #     n_test_batches /= batch_size
+        ### compute number of minibatches for validation and testing
+        n_valid_batches = valid_set_x.get_value(borrow=True).shape[0]
+        n_valid_batches /= batch_size
+        n_test_batches = test_set_x.get_value(borrow=True).shape[0]
+        n_test_batches /= batch_size
 
-    #     index = T.lscalar('index')  # index to a [mini]batch
-    #     learning_rate = T.scalar('lr')  ### added
+        index = T.lscalar('index')  # index to a [mini]batch
+        learning_rate = T.scalar('lr')  ### added
 
-    #     ### added
-    #     # begining of a batch, given `index`
-    #     batch_begin = index * batch_size
-    #     # ending of a batch given `index`
-    #     batch_end = batch_begin + batch_size
+        ### added
+        # begining of a batch, given `index`
+        batch_begin = index * batch_size
+        # ending of a batch given `index`
+        batch_end = batch_begin + batch_size
 
-    #     ### DLT code block
-    #     ### cost and updates computed with a call to .get_cost_updates
-    #     # # compute the gradients with respect to the model parameters
-    #     # gparams = T.grad(self.finetune_cost, self.params)
-    #     ### what does this line do? #gets the gradient of the cost function wrt
-    #     ### each different param in self.params (so don't need to loop because
-    #     ### each layer's parameters is in self.params). gparams = a list of 
-    #     ### gradients. one gradient for each param in the model.
+        ### DLT code block
+        ### cost and updates computed with a call to .get_cost_updates
+        # # compute the gradients with respect to the model parameters
+        # gparams = T.grad(self.finetune_cost, self.params)
+        ### what does this line do? #gets the gradient of the cost function wrt
+        ### each different param in self.params (so don't need to loop because
+        ### each layer's parameters is in self.params). gparams = a list of 
+        ### gradients. one gradient for each param in the model.
 
-    #     # # compute list of fine-tuning updates
-    #     # updates = []
-    #     # for param, gparam in zip(self.params, gparams):
-    #     #     updates.append((param, param - gparam * learning_rate))
-    #     ### this update updates the entire model
+        # # compute list of fine-tuning updates
+        # updates = []
+        # for param, gparam in zip(self.params, gparams):
+        #     updates.append((param, param - gparam * learning_rate))
+        ### this update updates the entire model
 
-    #     ### this seems to be computing the cost for the final layer (in terms
-    #     ### of all the params in the entire model). this is the only 'cost' we 
-    #     ### can calculate because it is supervised, so our cost is relative to
-    #     ### known categories y. We can't compute a cost greedily because not 
-    #     ### trying to recreated input data (unsupervised) and don't have known
-    #     ### hidden values.
-    #     ### the updates here contains the updates for all the layers.
+        ### this seems to be computing the cost for the final layer (in terms
+        ### of all the params in the entire model). this is the only 'cost' we 
+        ### can calculate because it is supervised, so our cost is relative to
+        ### known categories y. We can't compute a cost greedily because not 
+        ### trying to recreated input data (unsupervised) and don't have known
+        ### hidden values.
+        ### the updates here contains the updates for all the layers.
 
-    #     # train_fn = theano.function(inputs=[index],
-    #     #       outputs=self.finetune_cost,
-    #     #       updates=updates,
-    #     #       givens={self.x: train_set_x[index * batch_size:
-    #     #                                   (index + 1) * batch_size],
-    #     #               self.y: train_set_y[index * batch_size:
-    #     #                                   (index + 1) * batch_size]})
+        # train_fn = theano.function(inputs=[index],
+        #       outputs=self.finetune_cost,
+        #       updates=updates,
+        #       givens={self.x: train_set_x[index * batch_size:
+        #                                   (index + 1) * batch_size],
+        #               self.y: train_set_y[index * batch_size:
+        #                                   (index + 1) * batch_size]})
 
-    #     # test_score_i = theano.function([index], self.errors,
-    #     #          givens={self.x: test_set_x[index * batch_size:
-    #     #                                     (index + 1) * batch_size],
-    #     #                  self.y: test_set_y[index * batch_size:
-    #     #                                     (index + 1) * batch_size]})
+        # test_score_i = theano.function([index], self.errors,
+        #          givens={self.x: test_set_x[index * batch_size:
+        #                                     (index + 1) * batch_size],
+        #                  self.y: test_set_y[index * batch_size:
+        #                                     (index + 1) * batch_size]})
 
-    #     # valid_score_i = theano.function([index], self.errors,
-    #     #       givens={self.x: valid_set_x[index * batch_size:
-    #     #                                   (index + 1) * batch_size],
-    #     #               self.y: valid_set_y[index * batch_size:
-    #     #                                   (index + 1) * batch_size]})
+        # valid_score_i = theano.function([index], self.errors,
+        #       givens={self.x: valid_set_x[index * batch_size:
+        #                                   (index + 1) * batch_size],
+        #               self.y: valid_set_y[index * batch_size:
+        #                                   (index + 1) * batch_size]})
 
-    #     # # Create a function that scans the entire validation set
-    #     # def valid_score():
-    #     #     return [valid_score_i(i) for i in xrange(n_valid_batches)]
+        # # Create a function that scans the entire validation set
+        # def valid_score():
+        #     return [valid_score_i(i) for i in xrange(n_valid_batches)]
 
-    #     # # Create a function that scans the entire test set
-    #     # def test_score():
-    #     #     return [test_score_i(i) for i in xrange(n_test_batches)]
+        # # Create a function that scans the entire test set
+        # def test_score():
+        #     return [test_score_i(i) for i in xrange(n_test_batches)]
 
-    #     # return train_fn, valid_score, test_score
-    #     ### end DLT code block
+        # return train_fn, valid_score, test_score
+        ### end DLT code block
 
 
-    #     ### jdy code block
-    #     train_fns = []
-    #     ###if valid:
-    #     valid_fns = []
-    #     for autoencoder in self.A_layers:
-    #         # get the cost and the updates list
-    #         cost, updates = autoencoder.get_cost_updates(learning_rate=learning_rate)
+        ### jdy code block
+        train_fns = []
+        ###if valid:
+        valid_fns = []
+        for autoencoder in self.A_layers:
+            # get the cost and the updates list
+            cost, updates = autoencoder.get_cost_updates(learning_rate=learning_rate)
             
-    #         # compile the theano function
-    #         ### Each function in this list of functions (train_fns), computes
-    #         ### the cost and updates (to the weights and biases) for that layer 
-    #         ###individually(greedily).See the following link for how this works:
-    #         ### http://www.toptal.com/machine-learning/an-introduction-to-deep-learning-from-perceptrons-to-deep-networks
-    #         ### The input to each of these changes because of how the layer 
-    #         ### input is defined above. To train greedily like this is going to
-    #         ### take much longer than training with classic backpropagation, but
-    #         ### it is supposed to work better (see link above).
-    #         fn = theano.function(inputs=[index,
-    #                           ###theano.Param(corruption_level, default=0.2),
-    #                           theano.Param(learning_rate, default=0.1)],
-    #                              outputs=cost,
-    #                              updates=updates,
-    #                              givens={self.x: train_set_x[batch_begin:
-    #                                                          batch_end]})
-    #         # append `fn` to the list of functions
-    #         train_fns.append(fn)
+            # compile the theano function
+            ### Each function in this list of functions (train_fns), computes
+            ### the cost and updates (to the weights and biases) for that layer 
+            ###individually(greedily).See the following link for how this works:
+            ### http://www.toptal.com/machine-learning/an-introduction-to-deep-learning-from-perceptrons-to-deep-networks
+            ### The input to each of these changes because of how the layer 
+            ### input is defined above. To train greedily like this is going to
+            ### take much longer than training with classic backpropagation, but
+            ### it is supposed to work better (see link above).
+            fn = theano.function(inputs=[index,
+                              ###theano.Param(corruption_level, default=0.2),
+                              theano.Param(learning_rate, default=0.1)],
+                                 outputs=cost,
+                                 updates=updates,
+                                 givens={self.x: train_set_x[batch_begin:
+                                                             batch_end]})
+            # append `fn` to the list of functions
+            train_fns.append(fn)
 
 
-    #         ### get cost for validation set 
-    #         # valid_cost = autoencoder.get_cost_only()
-    #         # v_fn = theano.function(inputs=[index],
-    #         #                         outputs=valid_cost
-    #         #                         givens={self.x: valid_set_x[batch_begin:
-    #         #                                                     batch_end]})
-    #         # valid_fns.append(v_fn)
-    #         ### can repeat the previous 5 lines of code for test set cost
+            ### get cost for validation set 
+            # valid_cost = autoencoder.get_cost_only()
+            # v_fn = theano.function(inputs=[index],
+            #                         outputs=valid_cost
+            #                         givens={self.x: valid_set_x[batch_begin:
+            #                                                     batch_end]})
+            # valid_fns.append(v_fn)
+            ### can repeat the previous 5 lines of code for test set cost
 
         
 
 
-    #     # return (train_fns, valid_fns)
-    #     return train_fns
-    #     ### end jdy code block
+        # return (train_fns, valid_fns)
+        return train_fns
+        ### end jdy code block
 
 
 def test_SRBM_SA(finetune_lr=0.1, pretraining_epochs=1,
@@ -471,13 +483,12 @@ def test_SRBM_SA(finetune_lr=0.1, pretraining_epochs=1,
                           os.path.split(__file__)[1] +
                           ' ran for %.2fm' % ((end_time - start_time) / 60.))
 
-    ###jdy code block
+    ### jdy code block
     # print i, epoch, batch_index
-    # temp = pretraining_fns[i](index=batch_index,lr=pretrain_lr))
-    ### Running the line above changes the weights in layer 3 by a very small
-    ### amount leading to a minimal change in cost. any time pretraining_fns[i] 
-    ### is called it will update the shared variables for that layer only.
-    # print temp
+    # ### temp = pretraining_fns[i](index=batch_index,lr=pretrain_lr))
+    # ### Running the line above changes the weights in layer 3 by a very small
+    # ### amount leading to a minimal change in cost. any time pretraining_fns[i] 
+    # ### is called it will update the shared variables for that layer only.
     # params = type(srbm_sa.params[0])
     # print params
 
@@ -502,48 +513,48 @@ def test_SRBM_SA(finetune_lr=0.1, pretraining_epochs=1,
     ########################
 
     # get the training, validation and testing function for the model
-    # print '... getting the finetuning functions'
+    print '... getting the finetuning functions'
 
-    # training_fns = srbm_sa.build_finetune_functions(train_set_x=train_set_x,
-    #                                             valid_set_x=valid_set_x, 
-    #                                             test_set_x=test_set_x,
-    #                                             batch_size=batch_size)
+    training_fns = srbm_sa.build_finetune_functions(train_set_x=train_set_x,
+                                                valid_set_x=valid_set_x, 
+                                                test_set_x=test_set_x,
+                                                batch_size=batch_size)
 
-    # print '... finetuning the model'
-    # s_time = time.time() 
+    print '... finetuning the model'
+    s_time = time.time() 
 
-    # ## Finetune train layer-wise
-    # for layer in xrange(srbm_sa.n_layers):
-    #     # go through training epochs
-    #     for ep in xrange(training_epochs):
-    #         # go through the training set
-    #         t_cost = []
-    #         for b_index in xrange(n_train_batches):
-    #             t_cost.append(training_fns[layer](index=b_index,
-    #                                         lr=finetune_lr))
-    #             ### see *note above
+    ## Finetune train layer-wise
+    for layer in xrange(srbm_sa.n_layers):
+        # go through training epochs
+        for ep in xrange(training_epochs):
+            # go through the training set
+            t_cost = []
+            for b_index in xrange(n_train_batches):
+                t_cost.append(training_fns[layer](index=b_index,
+                                            lr=finetune_lr))
+                ### see *note above
 
-    #             ### for each function call of the training fns, the states 
-    #             ### of the shared variables (e.g. self.params) are updated.
-    #             ### training_fns = list of cost/update functions for each
-    #             ### layer of SRBM_SA. Each call to this fxn returns the cost and 
-    #             ### updates the parameters for that layer. See 'Shared Variable'  
-    #             ### section here: http://deeplearning.net/software/theano/tutorial/examples.html#logistic-function
-    #         print 'Pre-training layer %i, epoch %d, cost ' % (layer, ep),
-    #         print numpy.mean(t_cost)
+                ### for each function call of the training fns, the states 
+                ### of the shared variables (e.g. self.params) are updated.
+                ### training_fns = list of cost/update functions for each
+                ### layer of SRBM_SA. Each call to this fxn returns the cost and 
+                ### updates the parameters for that layer. See 'Shared Variable'  
+                ### section here: http://deeplearning.net/software/theano/tutorial/examples.html#logistic-function
+            print 'Pre-training layer %i, epoch %d, cost ' % (layer, ep),
+            print numpy.mean(t_cost)
 
-    #         ### jdy code block
-    #         # print srbm_sa.params 
-    #         # print 'layer %i, epoch %d' % (layer,ep)
-    #         # jdy_params0train = srbm_sa.params[layer * 2].get_value() 
-    #         # print jdy_params0train.shape
-    #         # print jdy_params0train[0:3, 0:3]
-    #         ###
+            ### jdy code block
+            # print srbm_sa.params 
+            # print 'layer %i, epoch %d' % (layer,ep)
+            # jdy_params0train = srbm_sa.params[layer * 2].get_value() 
+            # print jdy_params0train.shape
+            # print jdy_params0train[0:3, 0:3]
+            ###
 
-    # e_time = time.time()  ###changed time.clock() to time.time()
-    # print >> sys.stderr, ('The finetuning code for file ' +
-    #                       os.path.split(__file__)[1] +
-    #                       ' ran for %.2fm' % ((e_time - s_time) / 60.))
+    e_time = time.time()  ###changed time.clock() to time.time()
+    print >> sys.stderr, ('The finetuning code for file ' +
+                          os.path.split(__file__)[1] +
+                          ' ran for %.2fm' % ((e_time - s_time) / 60.))
 
 
     ### jdy code block
