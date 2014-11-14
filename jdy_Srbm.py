@@ -152,6 +152,11 @@ class SRBM(object):
         # compute the cost for second phase of training, defined as the
         # negative log likelihood of the logistic regression (output) layer
         # self.finetune_cost = self.logLayer.negative_log_likelihood(self.y)
+        ### from logistic_sgd.py, self.negative_log_likelihood(self, y):
+            ### return -T.mean(T.log(self.p_y_given_x)[T.arange(y.shape[0]), y])
+            ### this is a cost function given in terms of all the params of the
+            ### model because you need to forward propagate through all layers
+            ### to get the input for the function .p_y_given_x
 
         # compute the gradients with respect to the model parameters
         # symbolic variable that points to the number of errors made on the
@@ -257,7 +262,7 @@ def test_SRBM(finetune_lr=999, pretraining_epochs=2,
     numpy_rng = numpy.random.RandomState(123)
     print '... building the model'
 
-    # construct the Deep Belief Network
+    # construct the Stacked RBMs
     srbm = SRBM(numpy_rng=numpy_rng, n_ins=28 * 28,
               hidden_layers_sizes=[500, 250, 100],
               n_outs=10)
