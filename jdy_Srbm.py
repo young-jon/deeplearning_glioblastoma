@@ -214,8 +214,8 @@ class SRBM(object):
         ###deleted def build_finetune_functions
 
 
-def test_SRBM(finetune_lr=999, pretraining_epochs=2,
-             pretrain_lr=0.01, k=1, training_epochs=999,
+def test_SRBM(finetune_lr=999, pretraining_epochs=1,
+             pretrain_lr=0.1, k=1, training_epochs=999,
              dataset='/Users/jon/Data/mnist/mnist.pkl.gz', batch_size=10):
     ### finetune_lr and training_epochs not needed for SRBM
 
@@ -264,7 +264,7 @@ def test_SRBM(finetune_lr=999, pretraining_epochs=2,
 
     # construct the Stacked RBMs
     srbm = SRBM(numpy_rng=numpy_rng, n_ins=28 * 28,
-              hidden_layers_sizes=[500, 250, 100],
+              hidden_layers_sizes=[1000, 500, 250, 30],
               n_outs=10)
 
     ### jdy code block
@@ -337,7 +337,7 @@ def test_SRBM(finetune_lr=999, pretraining_epochs=2,
     ### amount leading to a minimal change in cost. any time pretraining_fns[i] 
     ### is called it will update the shared variables for that layer only.
     # print temp
-    # params = type(srbm_sa.params[0])
+    # params = type(srbm.params[0])
     # print params
 
 
