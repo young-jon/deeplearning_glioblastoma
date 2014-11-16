@@ -323,17 +323,6 @@ def test_DAfinetune(finetune_lr=0.1, pretraining_epochs=1,
     print dafinetune.params[4].get_value()[0:3, 0:3]
     ###
 
-    #########################
-    # TRAINING THE MODEL #
-    #########################
-    print '... getting the training function'
-    # ### creates a list of pretraining fxns for each layer in the SRBM_SA. This is
-    # ### where the self.hidden_layer[-1].output is needed -- to create the 
-    # ### appropriate equation/function for pretraining
-    # pretraining_fns = srbm_sa.pretraining_functions(train_set_x=train_set_x,
-    #                                             batch_size=batch_size,
-    #                                             k=k)
-
     # ### *note
     # '''Now any function pretrain_fns[i] takes as arguments index and optionally 
     # lr - the learning rate. Note that the names of the parameters are the names
@@ -405,20 +394,20 @@ def test_DAfinetune(finetune_lr=0.1, pretraining_epochs=1,
 
 
 
-    # ########################
-    # # FINETUNING THE MODEL #
-    # ########################
+    ########################
+    # FINETUNING THE MODEL #
+    ########################
 
     # get the training, validation and testing function for the model
-    # print '... getting the finetuning functions'
+    print '... getting the finetuning functions'
 
-    # training_fns = dafinetune.build_finetune_functions(train_set_x=train_set_x,
-    #                                             valid_set_x=valid_set_x, 
-    #                                             test_set_x=test_set_x,
-    #                                             batch_size=batch_size)
+    training_fn = dafinetune.build_finetune_functions(train_set_x=train_set_x,
+                                                valid_set_x=valid_set_x, 
+                                                test_set_x=test_set_x,
+                                                batch_size=batch_size)
 
-    # print '... finetuning the model'
-    # s_time = time.time() 
+    print '... finetuning the model'
+    s_time = time.time() 
 
     # ## Finetune train layer-wise
     # for layer in xrange(srbm_sa.n_layers):
