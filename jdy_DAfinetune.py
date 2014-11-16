@@ -323,76 +323,9 @@ def test_DAfinetune(finetune_lr=0.1, pretraining_epochs=1,
     print dafinetune.params[4].get_value()[0:3, 0:3]
     ###
 
-    # ### *note
-    # '''Now any function pretrain_fns[i] takes as arguments index and optionally 
-    # lr - the learning rate. Note that the names of the parameters are the names
-    # given to the Theano variables (e.g. lr) when they are constructed and not 
-    # the python variables (e.g. learning_rate).'''
-    
-
-    # print '... pre-training the model'
-    # start_time = time.time()  ###changed time.clock() to time.time() because
-    # ### getting times that are way too long with time.clock()
-
-    # ## Pre-train layer-wise
-    # for i in xrange(srbm_sa.n_layers):
-    #     # go through pretraining epochs
-    #     for epoch in xrange(pretraining_epochs):
-    #         # go through the training set
-    #         c = []
-    #         for batch_index in xrange(n_train_batches):
-    #             c.append(pretraining_fns[i](index=batch_index,
-    #                                         lr=pretrain_lr))
-    #             ### see *note above
-
-    #             ### for each function call of the pretraining fns, the states 
-    #             ### of the shared variables (e.g. self.params) are updated.
-    #             ### pretraining_fns = list of cost/update functions for each
-    #             ### layer of SRBM_SA. Each call to this fxn returns the cost and 
-    #             ### updates the parameters for that layer. See 'Shared Variable'  
-    #             ### section here: http://deeplearning.net/software/theano/tutorial/examples.html#logistic-function
-    #         print 'Pre-training layer %i, epoch %d, cost ' % (i, epoch),
-    #         print numpy.mean(c)
-
-    #         ### jdy code block
-    #         # print srbm_sa.params 
-    #         # print 'layer %i, epoch %d' % (i,epoch)
-    #         # jdy_params0 = srbm_sa.params[i * 2].get_value() 
-    #         # print jdy_params0.shape
-    #         # print jdy_params0[0:3, 0:3]
-    #         ###
-            
-
-    # end_time = time.time()  ###changed time.clock() to time.time()
-    # print >> sys.stderr, ('The pretraining code for file ' +
-    #                       os.path.split(__file__)[1] +
-    #                       ' ran for %.2fm' % ((end_time - start_time) / 60.))
-
-    # ###jdy code block
-    # # print i, epoch, batch_index
-    # # temp = pretraining_fns[i](index=batch_index,lr=pretrain_lr))
-    # ### Running the line above changes the weights in layer 3 by a very small
-    # ### amount leading to a minimal change in cost. any time pretraining_fns[i] 
-    # ### is called it will update the shared variables for that layer only.
-    # # print temp
-    # # params = type(srbm_sa.params[0])
-    # # print params
-
-
-    # # print srbm_sa.params
-    # # print 'layer0'
-    # # print srbm_sa.params[0].get_value()[0:3, 0:3]
-    # # print 'layer1'
-    # # print srbm_sa.params[2].get_value()[0:3, 0:3]
-    # # print 'layer2'
-    # # print srbm_sa.params[4].get_value()[0:3, 0:3]
-    # ###
-
     # # save_short(srbm_sa, '/Users/jon/models/DBNDA_theano/model_test.pkl')
     # # save_med_pkl(srbm_sa, '/Users/jon/models/DBNDA_theano/model_test2.pkl')
     # # save_med_npy(srbm_sa, '/Users/jon/models/DBNDA_theano/model_test3.npy')
-
-
 
     ########################
     # FINETUNING THE MODEL #
@@ -409,13 +342,21 @@ def test_DAfinetune(finetune_lr=0.1, pretraining_epochs=1,
     print '... finetuning the model'
     start_time = time.time() 
 
+    # for each epoch
     for epoch in xrange(training_epochs):
         c = []
+        #for each batch, append the cost for that batch (should be 5000 costs in c)
         for batch_index in xrange(n_train_batches):
             c.append(training_fn(index=batch_index, lr=pretrain_lr))
-
+            
         print 'Training epoch %d, cost' % (epoch),
         print numpy.mean(c)
+
+
+
+
+
+
 
     end_time = time.time()
     print >> sys.stderr, ('The fine tuning code for file ' +
@@ -423,26 +364,21 @@ def test_DAfinetune(finetune_lr=0.1, pretraining_epochs=1,
                           ' ran for %.2fm' % ((end_time - start_time)
                                               / 60.))
 
+    
+    ### NOTES ###
+    # Now any function training_fn takes as arguments index and optionally 
+    # lr - the learning rate. Note that the names of the parameters are the names
+    # given to the Theano variables (e.g. lr) when they are constructed and not 
+    # the python variables (e.g. learning_rate).
+    
+    # For each function call of training_fn, the states of the shared variables 
+    # (e.g. self.params) are updated. training_fn = one cost/update function for
+    # the DA. Each call to this fxn returns the cost and updates the parameters 
+    # for the entire model. See 'Shared Variable' section here: 
+    # http://deeplearning.net/software/theano/tutorial/examples.html#logistic-function            
 
-    # ## Finetune train layer-wise
-    # for layer in xrange(srbm_sa.n_layers):
-    #     # go through training epochs
-    #     for ep in xrange(training_epochs):
-    #         # go through the training set
-    #         t_cost = []
-    #         for b_index in xrange(n_train_batches):
-    #             t_cost.append(training_fns[layer](index=b_index,
-    #                                         lr=finetune_lr))
-    #             ### see *note above
 
-    #             ### for each function call of the training fn, the states 
-    #             ### of the shared variables (e.g. self.params) are updated.
-    #             ### training_fn = one cost/update function for the DA. 
-                  ### Each call to this fxn returns the cost and 
-    #             ### updates the parameters for the entire model. See 'Shared Variable'  
-    #             ### section here: http://deeplearning.net/software/theano/tutorial/examples.html#logistic-function
-    #         print 'Pre-training layer %i, epoch %d, cost ' % (layer, ep),
-    #         print numpy.mean(t_cost)
+    
 
     #         ### jdy code block
     #         # print srbm_sa.params 
@@ -451,11 +387,6 @@ def test_DAfinetune(finetune_lr=0.1, pretraining_epochs=1,
     #         # print jdy_params0train.shape
     #         # print jdy_params0train[0:3, 0:3]
     #         ###
-
-    # e_time = time.time()  ###changed time.clock() to time.time()
-    # print >> sys.stderr, ('The finetuning code for file ' +
-    #                       os.path.split(__file__)[1] +
-    #                       ' ran for %.2fm' % ((e_time - s_time) / 60.))
 
 
     # ## jdy code block
