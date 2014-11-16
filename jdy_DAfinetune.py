@@ -189,7 +189,14 @@ class DAfinetune(object):
         n_test_batches /= batch_size
 
         index = T.lscalar('index')  # index to a [mini]batch
-        learning_rate = T.scalar('lr')  ### added
+        learning_rate = T.scalar('lr')  
+
+        # 'learning_rate' is the symbolic variable used by train_fn # and 
+        # .get_cost_updates to create symbolic fxns. The actual value of the 
+        # learning rate isn't passed in until training_fn is called in 
+        # test_DAfinetune with the actual learning rate. this allows me to 
+        # possible change the learning rate throughout the training should I 
+        # want to in the future.
 
         ### added
         # begining of a batch, given `index`
@@ -263,7 +270,7 @@ class DAfinetune(object):
 
 
 def test_DAfinetune(finetune_lr=0.1, pretraining_epochs=1,
-             pretrain_lr=0.1, k=1, training_epochs=1,
+             pretrain_lr=0.1, k=1, training_epochs=2,
              dataset='/Users/jon/Data/mnist/mnist.pkl.gz', batch_size=10):
     ### finetune_lr and training_epochs not needed for SRBM
 
