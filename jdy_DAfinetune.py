@@ -84,7 +84,7 @@ class DAfinetune(object):
             if i == 0:
                 input_size = n_ins
             else:
-                input_size = hidden_layers_sizes[i - 1]
+                input_size = unrolled_hidden_layers_sizes[i - 1]
 
             # the input to this layer is either the activation of the
             # hidden layer below or the input of the SRBM_SA if you are on
@@ -161,10 +161,6 @@ class DAfinetune(object):
         return (cost, updates)
 
 
-
-
-
-
     def build_finetune_functions(self, train_set_x, valid_set_x, test_set_x, 
                             batch_size): 
         ### removed learning_rate from function parameters
@@ -201,9 +197,6 @@ class DAfinetune(object):
         # ending of a batch given `index`
         batch_end = batch_begin + batch_size
 
-        
-        
-
 
         # train_fn = theano.function(inputs=[index],
         #       outputs=self.finetune_cost,
@@ -235,27 +228,21 @@ class DAfinetune(object):
 
         # return train_fn, valid_score, test_score
         ### end DLT code block
-
-
-        ### jdy code block
-        train_fns = []
-        ###if valid:
-        valid_fns = []
+        
 
 
         # get the cost and the updates list
         cost, updates = self.get_cost_updates(learning_rate=learning_rate)
         
         # compile the theano function
-        fn = theano.function(inputs=[index,
+        train_fn = theano.function(inputs=[index,
                           ###theano.Param(corruption_level, default=0.2),
                           theano.Param(learning_rate, default=0.1)],
                              outputs=cost,
                              updates=updates,
                              givens={self.x: train_set_x[batch_begin:
                                                          batch_end]})
-        # append `fn` to the list of functions
-        train_fns.append(fn)
+        
 
 
         ### get cost for validation set 
@@ -271,7 +258,7 @@ class DAfinetune(object):
 
 
         # return (train_fns, valid_fns)
-        return train_fns
+        return train_fn
         ### end jdy code block
 
 
@@ -324,8 +311,7 @@ def test_DAfinetune(finetune_lr=0.1, pretraining_epochs=1,
 
     # construct the SRBM_SA 
     dafinetune = DAfinetune(numpy_rng=numpy_rng, n_ins=28 * 28,
-              hidden_layers_sizes=[1000, 500, 250, 30],
-              n_outs=10)
+              hidden_layers_sizes=[1000, 500, 250, 30])
 
     ### jdy code block
     print dafinetune.params
@@ -338,68 +324,138 @@ def test_DAfinetune(finetune_lr=0.1, pretraining_epochs=1,
     ###
 
     #########################
-    # PRETRAINING THE MODEL #
+    # TRAINING THE MODEL #
     #########################
-    print '... getting the pretraining functions'
-    ### creates a list of pretraining fxns for each layer in the SRBM_SA. This is
-    ### where the self.hidden_layer[-1].output is needed -- to create the 
-    ### appropriate equation/function for pretraining
-    pretraining_fns = srbm_sa.pretraining_functions(train_set_x=train_set_x,
-                                                batch_size=batch_size,
-                                                k=k)
+    print '... getting the training function'
+    # ### creates a list of pretraining fxns for each layer in the SRBM_SA. This is
+    # ### where the self.hidden_layer[-1].output is needed -- to create the 
+    # ### appropriate equation/function for pretraining
+    # pretraining_fns = srbm_sa.pretraining_functions(train_set_x=train_set_x,
+    #                                             batch_size=batch_size,
+    #                                             k=k)
 
-    ### *note
-    '''Now any function pretrain_fns[i] takes as arguments index and optionally 
-    lr - the learning rate. Note that the names of the parameters are the names
-    given to the Theano variables (e.g. lr) when they are constructed and not 
-    the python variables (e.g. learning_rate).'''
+    # ### *note
+    # '''Now any function pretrain_fns[i] takes as arguments index and optionally 
+    # lr - the learning rate. Note that the names of the parameters are the names
+    # given to the Theano variables (e.g. lr) when they are constructed and not 
+    # the python variables (e.g. learning_rate).'''
     
 
-    print '... pre-training the model'
-    start_time = time.time()  ###changed time.clock() to time.time() because
-    ### getting times that are way too long with time.clock()
+    # print '... pre-training the model'
+    # start_time = time.time()  ###changed time.clock() to time.time() because
+    # ### getting times that are way too long with time.clock()
 
-    ## Pre-train layer-wise
-    for i in xrange(srbm_sa.n_layers):
-        # go through pretraining epochs
-        for epoch in xrange(pretraining_epochs):
-            # go through the training set
-            c = []
-            for batch_index in xrange(n_train_batches):
-                c.append(pretraining_fns[i](index=batch_index,
-                                            lr=pretrain_lr))
-                ### see *note above
+    # ## Pre-train layer-wise
+    # for i in xrange(srbm_sa.n_layers):
+    #     # go through pretraining epochs
+    #     for epoch in xrange(pretraining_epochs):
+    #         # go through the training set
+    #         c = []
+    #         for batch_index in xrange(n_train_batches):
+    #             c.append(pretraining_fns[i](index=batch_index,
+    #                                         lr=pretrain_lr))
+    #             ### see *note above
 
-                ### for each function call of the pretraining fns, the states 
-                ### of the shared variables (e.g. self.params) are updated.
-                ### pretraining_fns = list of cost/update functions for each
-                ### layer of SRBM_SA. Each call to this fxn returns the cost and 
-                ### updates the parameters for that layer. See 'Shared Variable'  
-                ### section here: http://deeplearning.net/software/theano/tutorial/examples.html#logistic-function
-            print 'Pre-training layer %i, epoch %d, cost ' % (i, epoch),
-            print numpy.mean(c)
+    #             ### for each function call of the pretraining fns, the states 
+    #             ### of the shared variables (e.g. self.params) are updated.
+    #             ### pretraining_fns = list of cost/update functions for each
+    #             ### layer of SRBM_SA. Each call to this fxn returns the cost and 
+    #             ### updates the parameters for that layer. See 'Shared Variable'  
+    #             ### section here: http://deeplearning.net/software/theano/tutorial/examples.html#logistic-function
+    #         print 'Pre-training layer %i, epoch %d, cost ' % (i, epoch),
+    #         print numpy.mean(c)
 
-            ### jdy code block
-            # print srbm_sa.params 
-            # print 'layer %i, epoch %d' % (i,epoch)
-            # jdy_params0 = srbm_sa.params[i * 2].get_value() 
-            # print jdy_params0.shape
-            # print jdy_params0[0:3, 0:3]
-            ###
+    #         ### jdy code block
+    #         # print srbm_sa.params 
+    #         # print 'layer %i, epoch %d' % (i,epoch)
+    #         # jdy_params0 = srbm_sa.params[i * 2].get_value() 
+    #         # print jdy_params0.shape
+    #         # print jdy_params0[0:3, 0:3]
+    #         ###
             
 
-    end_time = time.time()  ###changed time.clock() to time.time()
-    print >> sys.stderr, ('The pretraining code for file ' +
-                          os.path.split(__file__)[1] +
-                          ' ran for %.2fm' % ((end_time - start_time) / 60.))
+    # end_time = time.time()  ###changed time.clock() to time.time()
+    # print >> sys.stderr, ('The pretraining code for file ' +
+    #                       os.path.split(__file__)[1] +
+    #                       ' ran for %.2fm' % ((end_time - start_time) / 60.))
 
-    ###jdy code block
-    # print i, epoch, batch_index
-    # temp = pretraining_fns[i](index=batch_index,lr=pretrain_lr))
-    ### Running the line above changes the weights in layer 3 by a very small
-    ### amount leading to a minimal change in cost. any time pretraining_fns[i] 
-    ### is called it will update the shared variables for that layer only.
-    # print temp
+    # ###jdy code block
+    # # print i, epoch, batch_index
+    # # temp = pretraining_fns[i](index=batch_index,lr=pretrain_lr))
+    # ### Running the line above changes the weights in layer 3 by a very small
+    # ### amount leading to a minimal change in cost. any time pretraining_fns[i] 
+    # ### is called it will update the shared variables for that layer only.
+    # # print temp
+    # # params = type(srbm_sa.params[0])
+    # # print params
+
+
+    # # print srbm_sa.params
+    # # print 'layer0'
+    # # print srbm_sa.params[0].get_value()[0:3, 0:3]
+    # # print 'layer1'
+    # # print srbm_sa.params[2].get_value()[0:3, 0:3]
+    # # print 'layer2'
+    # # print srbm_sa.params[4].get_value()[0:3, 0:3]
+    # ###
+
+    # # save_short(srbm_sa, '/Users/jon/models/DBNDA_theano/model_test.pkl')
+    # # save_med_pkl(srbm_sa, '/Users/jon/models/DBNDA_theano/model_test2.pkl')
+    # # save_med_npy(srbm_sa, '/Users/jon/models/DBNDA_theano/model_test3.npy')
+
+
+
+    # ########################
+    # # FINETUNING THE MODEL #
+    # ########################
+
+    # get the training, validation and testing function for the model
+    # print '... getting the finetuning functions'
+
+    # training_fns = dafinetune.build_finetune_functions(train_set_x=train_set_x,
+    #                                             valid_set_x=valid_set_x, 
+    #                                             test_set_x=test_set_x,
+    #                                             batch_size=batch_size)
+
+    # print '... finetuning the model'
+    # s_time = time.time() 
+
+    # ## Finetune train layer-wise
+    # for layer in xrange(srbm_sa.n_layers):
+    #     # go through training epochs
+    #     for ep in xrange(training_epochs):
+    #         # go through the training set
+    #         t_cost = []
+    #         for b_index in xrange(n_train_batches):
+    #             t_cost.append(training_fns[layer](index=b_index,
+    #                                         lr=finetune_lr))
+    #             ### see *note above
+
+    #             ### for each function call of the training fns, the states 
+    #             ### of the shared variables (e.g. self.params) are updated.
+    #             ### training_fns = list of cost/update functions for each
+    #             ### layer of SRBM_SA. Each call to this fxn returns the cost and 
+    #             ### updates the parameters for that layer. See 'Shared Variable'  
+    #             ### section here: http://deeplearning.net/software/theano/tutorial/examples.html#logistic-function
+    #         print 'Pre-training layer %i, epoch %d, cost ' % (layer, ep),
+    #         print numpy.mean(t_cost)
+
+    #         ### jdy code block
+    #         # print srbm_sa.params 
+    #         # print 'layer %i, epoch %d' % (layer,ep)
+    #         # jdy_params0train = srbm_sa.params[layer * 2].get_value() 
+    #         # print jdy_params0train.shape
+    #         # print jdy_params0train[0:3, 0:3]
+    #         ###
+
+    # e_time = time.time()  ###changed time.clock() to time.time()
+    # print >> sys.stderr, ('The finetuning code for file ' +
+    #                       os.path.split(__file__)[1] +
+    #                       ' ran for %.2fm' % ((e_time - s_time) / 60.))
+
+
+    # ## jdy code block
+    # print layer, ep, b_index
     # params = type(srbm_sa.params[0])
     # print params
 
@@ -411,150 +467,80 @@ def test_DAfinetune(finetune_lr=0.1, pretraining_epochs=1,
     # print srbm_sa.params[2].get_value()[0:3, 0:3]
     # print 'layer2'
     # print srbm_sa.params[4].get_value()[0:3, 0:3]
-    ###
+    # ##
 
-    # save_short(srbm_sa, '/Users/jon/models/DBNDA_theano/model_test.pkl')
-    # save_med_pkl(srbm_sa, '/Users/jon/models/DBNDA_theano/model_test2.pkl')
-    # save_med_npy(srbm_sa, '/Users/jon/models/DBNDA_theano/model_test3.npy')
+    # train_fn, validate_model, test_model = srbm_sa.build_finetune_functions(
+    #             datasets=datasets, batch_size=batch_size,
+    #             learning_rate=finetune_lr)
 
+    # print '... finetunning the model'
+    # # early-stopping parameters
+    # patience = 4 * n_train_batches  # look as this many examples regardless
+    # patience_increase = 2.    # wait this much longer when a new best is
+    #                           # found
+    # improvement_threshold = 0.995  # a relative improvement of this much is
+    #                                # considered significant
+    # validation_frequency = min(n_train_batches, patience / 2)
+    #                               # go through this many
+    #                               # minibatche before checking the network
+    #                               # on the validation set; in this case we
+    #                               # check every epoch
 
+    # best_params = None
+    # best_validation_loss = numpy.inf
+    # test_score = 0.
+    # start_time = time.time()
 
-    ########################
-    # FINETUNING THE MODEL #
-    ########################
+    # done_looping = False
+    # epoch = 0
 
-    get the training, validation and testing function for the model
-    print '... getting the finetuning functions'
+    # while (epoch < training_epochs) and (not done_looping):
+    #     epoch = epoch + 1
+    #     for minibatch_index in xrange(n_train_batches):
 
-    training_fns = dafinetune.build_finetune_functions(train_set_x=train_set_x,
-                                                valid_set_x=valid_set_x, 
-                                                test_set_x=test_set_x,
-                                                batch_size=batch_size)
+    #         minibatch_avg_cost = train_fn(minibatch_index)
+    #         iter = (epoch - 1) * n_train_batches + minibatch_index
 
-    print '... finetuning the model'
-    s_time = time.time() 
+    #         if (iter + 1) % validation_frequency == 0:
 
-    ## Finetune train layer-wise
-    for layer in xrange(srbm_sa.n_layers):
-        # go through training epochs
-        for ep in xrange(training_epochs):
-            # go through the training set
-            t_cost = []
-            for b_index in xrange(n_train_batches):
-                t_cost.append(training_fns[layer](index=b_index,
-                                            lr=finetune_lr))
-                ### see *note above
+    #             validation_losses = validate_model()
+    #             this_validation_loss = numpy.mean(validation_losses)
+    #             print('epoch %i, minibatch %i/%i, validation error %f %%' % \
+    #                   (epoch, minibatch_index + 1, n_train_batches,
+    #                    this_validation_loss * 100.))
 
-                ### for each function call of the training fns, the states 
-                ### of the shared variables (e.g. self.params) are updated.
-                ### training_fns = list of cost/update functions for each
-                ### layer of SRBM_SA. Each call to this fxn returns the cost and 
-                ### updates the parameters for that layer. See 'Shared Variable'  
-                ### section here: http://deeplearning.net/software/theano/tutorial/examples.html#logistic-function
-            print 'Pre-training layer %i, epoch %d, cost ' % (layer, ep),
-            print numpy.mean(t_cost)
+    #             # if we got the best validation score until now
+    #             if this_validation_loss < best_validation_loss:
 
-            ### jdy code block
-            # print srbm_sa.params 
-            # print 'layer %i, epoch %d' % (layer,ep)
-            # jdy_params0train = srbm_sa.params[layer * 2].get_value() 
-            # print jdy_params0train.shape
-            # print jdy_params0train[0:3, 0:3]
-            ###
+    #                 #improve patience if loss improvement is good enough
+    #                 if (this_validation_loss < best_validation_loss *
+    #                     improvement_threshold):
+    #                     patience = max(patience, iter * patience_increase)
 
-    e_time = time.time()  ###changed time.clock() to time.time()
-    print >> sys.stderr, ('The finetuning code for file ' +
-                          os.path.split(__file__)[1] +
-                          ' ran for %.2fm' % ((e_time - s_time) / 60.))
+    #                 # save best validation score and iteration number
+    #                 best_validation_loss = this_validation_loss
+    #                 best_iter = iter
 
+    #                 # test it on the test set
+    #                 test_losses = test_model()
+    #                 test_score = numpy.mean(test_losses)
+    #                 print(('     epoch %i, minibatch %i/%i, test error of '
+    #                        'best model %f %%') %
+    #                       (epoch, minibatch_index + 1, n_train_batches,
+    #                        test_score * 100.))
 
-    ## jdy code block
-    print layer, ep, b_index
-    params = type(srbm_sa.params[0])
-    print params
+    #         if patience <= iter:
+    #             done_looping = True
+    #             break
 
-
-    print srbm_sa.params
-    print 'layer0'
-    print srbm_sa.params[0].get_value()[0:3, 0:3]
-    print 'layer1'
-    print srbm_sa.params[2].get_value()[0:3, 0:3]
-    print 'layer2'
-    print srbm_sa.params[4].get_value()[0:3, 0:3]
-    ##
-
-    train_fn, validate_model, test_model = srbm_sa.build_finetune_functions(
-                datasets=datasets, batch_size=batch_size,
-                learning_rate=finetune_lr)
-
-    print '... finetunning the model'
-    # early-stopping parameters
-    patience = 4 * n_train_batches  # look as this many examples regardless
-    patience_increase = 2.    # wait this much longer when a new best is
-                              # found
-    improvement_threshold = 0.995  # a relative improvement of this much is
-                                   # considered significant
-    validation_frequency = min(n_train_batches, patience / 2)
-                                  # go through this many
-                                  # minibatche before checking the network
-                                  # on the validation set; in this case we
-                                  # check every epoch
-
-    best_params = None
-    best_validation_loss = numpy.inf
-    test_score = 0.
-    start_time = time.time()
-
-    done_looping = False
-    epoch = 0
-
-    while (epoch < training_epochs) and (not done_looping):
-        epoch = epoch + 1
-        for minibatch_index in xrange(n_train_batches):
-
-            minibatch_avg_cost = train_fn(minibatch_index)
-            iter = (epoch - 1) * n_train_batches + minibatch_index
-
-            if (iter + 1) % validation_frequency == 0:
-
-                validation_losses = validate_model()
-                this_validation_loss = numpy.mean(validation_losses)
-                print('epoch %i, minibatch %i/%i, validation error %f %%' % \
-                      (epoch, minibatch_index + 1, n_train_batches,
-                       this_validation_loss * 100.))
-
-                # if we got the best validation score until now
-                if this_validation_loss < best_validation_loss:
-
-                    #improve patience if loss improvement is good enough
-                    if (this_validation_loss < best_validation_loss *
-                        improvement_threshold):
-                        patience = max(patience, iter * patience_increase)
-
-                    # save best validation score and iteration number
-                    best_validation_loss = this_validation_loss
-                    best_iter = iter
-
-                    # test it on the test set
-                    test_losses = test_model()
-                    test_score = numpy.mean(test_losses)
-                    print(('     epoch %i, minibatch %i/%i, test error of '
-                           'best model %f %%') %
-                          (epoch, minibatch_index + 1, n_train_batches,
-                           test_score * 100.))
-
-            if patience <= iter:
-                done_looping = True
-                break
-
-    end_time = time.time()
-    print(('Optimization complete with best validation score of %f %%,'
-           'with test performance %f %%') %
-                 (best_validation_loss * 100., test_score * 100.))
-    print >> sys.stderr, ('The fine tuning code for file ' +
-                          os.path.split(__file__)[1] +
-                          ' ran for %.2fm' % ((end_time - start_time)
-                                              / 60.))
+    # end_time = time.time()
+    # print(('Optimization complete with best validation score of %f %%,'
+    #        'with test performance %f %%') %
+    #              (best_validation_loss * 100., test_score * 100.))
+    # print >> sys.stderr, ('The fine tuning code for file ' +
+    #                       os.path.split(__file__)[1] +
+    #                       ' ran for %.2fm' % ((end_time - start_time)
+    #                                           / 60.))
 
 
 if __name__ == '__main__':
