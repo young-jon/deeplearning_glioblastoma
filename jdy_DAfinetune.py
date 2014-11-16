@@ -407,7 +407,22 @@ def test_DAfinetune(finetune_lr=0.1, pretraining_epochs=1,
                                                 batch_size=batch_size)
 
     print '... finetuning the model'
-    s_time = time.time() 
+    start_time = time.time() 
+
+    for epoch in xrange(training_epochs):
+        c = []
+        for batch_index in xrange(n_train_batches):
+            c.append(training_fn(index=batch_index, lr=pretrain_lr))
+
+        print 'Training epoch %d, cost' % (epoch),
+        print numpy.mean(c)
+
+    end_time = time.time()
+    print >> sys.stderr, ('The fine tuning code for file ' +
+                          os.path.split(__file__)[1] +
+                          ' ran for %.2fm' % ((end_time - start_time)
+                                              / 60.))
+
 
     # ## Finetune train layer-wise
     # for layer in xrange(srbm_sa.n_layers):
@@ -420,11 +435,11 @@ def test_DAfinetune(finetune_lr=0.1, pretraining_epochs=1,
     #                                         lr=finetune_lr))
     #             ### see *note above
 
-    #             ### for each function call of the training fns, the states 
+    #             ### for each function call of the training fn, the states 
     #             ### of the shared variables (e.g. self.params) are updated.
-    #             ### training_fns = list of cost/update functions for each
-    #             ### layer of SRBM_SA. Each call to this fxn returns the cost and 
-    #             ### updates the parameters for that layer. See 'Shared Variable'  
+    #             ### training_fn = one cost/update function for the DA. 
+                  ### Each call to this fxn returns the cost and 
+    #             ### updates the parameters for the entire model. See 'Shared Variable'  
     #             ### section here: http://deeplearning.net/software/theano/tutorial/examples.html#logistic-function
     #         print 'Pre-training layer %i, epoch %d, cost ' % (layer, ep),
     #         print numpy.mean(t_cost)
