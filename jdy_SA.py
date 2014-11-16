@@ -218,6 +218,7 @@ class SA(object):
                                  updates=updates,
                                  givens={self.x: train_set_x[batch_begin:
                                                              batch_end]})
+            ### givens -- replace self.x in function with train_set_x[batch_begin:batch_end]
             # append `fn` to the list of functions
             pretrain_fns.append(fn)
 

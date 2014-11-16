@@ -125,7 +125,7 @@ class DAfinetune(object):
 
     def get_cost_updates(self, learning_rate): 
         """ This function computes the cost and the updates for one trainng
-        step of the A.
+        step of the DA.
         *Note from dA tutorial: 'The reconstruction error can be measured in many
         ways, depending on the appropriate distributional assumptions on the 
         input given the code, e.g., using the traditional squared error, or if 
@@ -148,8 +148,19 @@ class DAfinetune(object):
         #        corresponding example of the minibatch. We need to
         #        compute the average of all these to get the cost of
         #        the minibatch
-
         cost = T.mean(L)
+
+        # compute the gradients of the cost of the `DA` with respect
+        # to its parameters
+        gparams = T.grad(cost, self.params)
+        # generate the list of updates
+        updates = []
+        for param, gparam in zip(self.params, gparams):
+            updates.append((param, param - learning_rate * gparam))
+
+        return (cost, updates)
+
+
 
 
 
@@ -174,10 +185,6 @@ class DAfinetune(object):
         :param learning_rate: learning rate used during finetune stage
 
         '''
-        ### passed in the appropriate data so don't to do this
-        # (train_set_x, train_set_y) = datasets[0]
-        # (valid_set_x, valid_set_y) = datasets[1]
-        # (test_set_x, test_set_y) = datasets[2]
 
         ### compute number of minibatches for validation and testing
         n_valid_batches = valid_set_x.get_value(borrow=True).shape[0]
@@ -194,28 +201,9 @@ class DAfinetune(object):
         # ending of a batch given `index`
         batch_end = batch_begin + batch_size
 
-        ### DLT code block
-        ### cost and updates computed with a call to .get_cost_updates
-        # # compute the gradients with respect to the model parameters
-        # gparams = T.grad(self.finetune_cost, self.params)
-        ### what does this line do? #gets the gradient of the cost function wrt
-        ### each different param in self.params (so don't need to loop because
-        ### each layer's parameters is in self.params). gparams = a list of 
-        ### gradients. one gradient for each param in the model.
+        
+        
 
-        # # compute list of fine-tuning updates
-        # updates = []
-        # for param, gparam in zip(self.params, gparams):
-        #     updates.append((param, param - gparam * learning_rate))
-        ### this update updates the entire model
-
-        ### this seems to be computing the cost for the final layer (in terms
-        ### of all the params in the entire model). this is the only 'cost' we 
-        ### can calculate because it is supervised, so our cost is relative to
-        ### known categories y. We can't compute a cost greedily because not 
-        ### trying to recreated input data (unsupervised) and don't have known
-        ### hidden values.
-        ### the updates here contains the updates for all the layers.
 
         # train_fn = theano.function(inputs=[index],
         #       outputs=self.finetune_cost,
@@ -253,38 +241,31 @@ class DAfinetune(object):
         train_fns = []
         ###if valid:
         valid_fns = []
-        for autoencoder in self.A_layers:
-            # get the cost and the updates list
-            cost, updates = autoencoder.get_cost_updates(learning_rate=learning_rate)
-            
-            # compile the theano function
-            ### Each function in this list of functions (train_fns), computes
-            ### the cost and updates (to the weights and biases) for that layer 
-            ###individually(greedily).See the following link for how this works:
-            ### http://www.toptal.com/machine-learning/an-introduction-to-deep-learning-from-perceptrons-to-deep-networks
-            ### The input to each of these changes because of how the layer 
-            ### input is defined above. To train greedily like this is going to
-            ### take much longer than training with classic backpropagation, but
-            ### it is supposed to work better (see link above).
-            fn = theano.function(inputs=[index,
-                              ###theano.Param(corruption_level, default=0.2),
-                              theano.Param(learning_rate, default=0.1)],
-                                 outputs=cost,
-                                 updates=updates,
-                                 givens={self.x: train_set_x[batch_begin:
-                                                             batch_end]})
-            # append `fn` to the list of functions
-            train_fns.append(fn)
 
 
-            ### get cost for validation set 
-            # valid_cost = autoencoder.get_cost_only()
-            # v_fn = theano.function(inputs=[index],
-            #                         outputs=valid_cost
-            #                         givens={self.x: valid_set_x[batch_begin:
-            #                                                     batch_end]})
-            # valid_fns.append(v_fn)
-            ### can repeat the previous 5 lines of code for test set cost
+        # get the cost and the updates list
+        cost, updates = self.get_cost_updates(learning_rate=learning_rate)
+        
+        # compile the theano function
+        fn = theano.function(inputs=[index,
+                          ###theano.Param(corruption_level, default=0.2),
+                          theano.Param(learning_rate, default=0.1)],
+                             outputs=cost,
+                             updates=updates,
+                             givens={self.x: train_set_x[batch_begin:
+                                                         batch_end]})
+        # append `fn` to the list of functions
+        train_fns.append(fn)
+
+
+        ### get cost for validation set 
+        # valid_cost = autoencoder.get_cost_only()
+        # v_fn = theano.function(inputs=[index],
+        #                         outputs=valid_cost
+        #                         givens={self.x: valid_set_x[batch_begin:
+        #                                                     batch_end]})
+        # valid_fns.append(v_fn)
+        ### can repeat the previous 5 lines of code for test set cost
 
         
 
