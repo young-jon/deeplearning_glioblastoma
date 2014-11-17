@@ -238,13 +238,7 @@ class DAfinetune(object):
         batch_end = batch_begin + batch_size
 
 
-        # train_fn = theano.function(inputs=[index],
-        #       outputs=self.finetune_cost,
-        #       updates=updates,
-        #       givens={self.x: train_set_x[index * batch_size:
-        #                                   (index + 1) * batch_size],
-        #               self.y: train_set_y[index * batch_size:
-        #                                   (index + 1) * batch_size]})
+        
 
         # test_score_i = theano.function([index], self.errors,
         #          givens={self.x: test_set_x[index * batch_size:
@@ -252,11 +246,7 @@ class DAfinetune(object):
         #                  self.y: test_set_y[index * batch_size:
         #                                     (index + 1) * batch_size]})
 
-        # valid_score_i = theano.function([index], self.errors,
-        #       givens={self.x: valid_set_x[index * batch_size:
-        #                                   (index + 1) * batch_size],
-        #               self.y: valid_set_y[index * batch_size:
-        #                                   (index + 1) * batch_size]})
+        
 
         # # Create a function that scans the entire validation set
         # def valid_score():
@@ -283,23 +273,18 @@ class DAfinetune(object):
                              givens={self.x: train_set_x[batch_begin:
                                                          batch_end]})
         
+        #get the mean squared error for the test set
+        mse = self.get_test_error()
 
-
-        ### get cost for validation set 
-        # valid_cost = autoencoder.get_cost_only()
-        # v_fn = theano.function(inputs=[index],
-        #                         outputs=valid_cost
-        #                         givens={self.x: valid_set_x[batch_begin:
-        #                                                     batch_end]})
-        # valid_fns.append(v_fn)
-        ### can repeat the previous 5 lines of code for test set cost
-
-        
+        # compile theano function
+        test_fn = theano.function(inputs=[index],
+                             outputs=mse,
+                             givens={self.x: test_set_x[batch_begin:
+                                                         batch_end]})
 
 
         # return (train_fns, valid_fns)
         return train_fn
-        ### end jdy code block
 
 
 def test_DAfinetune(finetune_lr=0.1, pretraining_epochs=1,
