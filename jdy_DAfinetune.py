@@ -119,7 +119,7 @@ class DAfinetune(object):
 
         self.params.extend(self.reconstructionLayer.params)
 
-    def get_cost_updates(self, learning_rate): 
+    def get_cost_updates_mse(self, learning_rate): 
         """ This function computes the cost and the updates for one trainng
         step of the DA.
         I made this exactly like Hinton's code (2006) -- see 'CG_MNIST.m'
@@ -138,7 +138,14 @@ class DAfinetune(object):
         http://www.deeplearning.net/tutorial/dA.html#daa
         http://www.deeplearning.net/tutorial/gettingstarted.html#gettingstarted
         """
+        #compute x reconstruction
         xhat = self.reconstructionLayer.output
+        
+        # compute mean-squared error for the train set batch
+        sum_sq_errors = T.sum((self.x - xhat)**2, axis=1)
+        mse = T.mean(sum_sq_errors)
+
+        # compute cross-entropy cost
         # note : we sum over the size of a datapoint; if we are using
         #        minibatches, L will be a vector, with one entry per
         #        example in minibatch
@@ -158,7 +165,8 @@ class DAfinetune(object):
         for param, gparam in zip(self.params, gparams):
             updates.append((param, param - learning_rate * gparam))
 
-        return (cost, updates)
+
+        return (cost, updates, mse)
 
     def get_test_error(self):
         '''This function computes the mean-squared error for a test set. Can 
@@ -218,7 +226,7 @@ class DAfinetune(object):
         learning_rate = T.scalar('lr')  
 
         # 'learning_rate' is the symbolic variable used by train_fn # and 
-        # .get_cost_updates to create symbolic fxns. The actual value of the 
+        # .get_cost_updates_mse to create symbolic fxns. The actual value of the 
         # learning rate isn't passed in until training_fn is called in 
         # test_DAfinetune with the actual learning rate. this allows me to 
         # possible change the learning rate throughout the training should I 
@@ -231,23 +239,24 @@ class DAfinetune(object):
         batch_end = batch_begin + batch_size
         
         # get the cost and the updates list
-        cost, updates = self.get_cost_updates(learning_rate=learning_rate)
+        cost, updates, train_mse = self.get_cost_updates_mse(
+                                                    learning_rate=learning_rate)
         
         # compile the theano function
         train_fn = theano.function(inputs=[index,
                           ###theano.Param(corruption_level, default=0.2),
                           theano.Param(learning_rate, default=0.1)],
-                             outputs=cost,
+                             outputs=(cost, train_mse),
                              updates=updates,
                              givens={self.x: train_set_x[batch_begin:
                                                          batch_end]})
         
         #get the mean squared error for the test set
-        mse = self.get_test_error()
+        test_mse = self.get_test_error()
 
         # compile theano function
         test_fn = theano.function(inputs=[index],
-                             outputs=mse,
+                             outputs=test_mse,
                              givens={self.x: test_set_x[batch_begin:
                                                          batch_end]})
 
@@ -294,13 +303,13 @@ def test_DAfinetune(finetune_lr=0.1, training_epochs=5,
               hidden_layers_sizes=hidden_layers_sizes)
 
     ### jdy code block
-    print dafinetune.params
-    print 'layer0'
-    print dafinetune.params[0].get_value()[0:3, 0:3]
-    print 'layer1'
-    print dafinetune.params[2].get_value()[0:3, 0:3]
-    print 'layer2'
-    print dafinetune.params[4].get_value()[0:3, 0:3]
+    # print dafinetune.params
+    # print 'layer0'
+    # print dafinetune.params[0].get_value()[0:3, 0:3]
+    # print 'layer1'
+    # print dafinetune.params[2].get_value()[0:3, 0:3]
+    # print 'layer2'
+    # print dafinetune.params[4].get_value()[0:3, 0:3]
     ###
 
     # # save_short(srbm_sa, '/Users/jon/models/DBNDA_theano/model_test.pkl')
@@ -325,23 +334,25 @@ def test_DAfinetune(finetune_lr=0.1, training_epochs=5,
 
     # for each epoch
     for epoch in xrange(training_epochs):
-        c = []
+        c = []  #list to collect costs
+        e = []  #list to collect train errors
         # TRAIN SET COST: for each batch, append the cost for that batch (should 
-        # be 5000 costs in c)
+        # be 5000 costs in c). Also append mse to e.
         for batch_index in xrange(n_train_batches):
-            c.append(training_fn(index=batch_index, lr=finetune_lr))
+            cost, err = training_fn(index=batch_index, lr=finetune_lr)
+            c.append(cost)
+            e.append(err)
 
 
         # TEST SET ERROR: calculate test set error for each epoch
-        e = []
+        te = []  #list to collect test errors
         for i in xrange(n_test_batches):
-            e.append(testing_fn(index=i))
+            te.append(testing_fn(index=i))
 
         # print results to screen
-        print 'Training epoch %d, Train cost' % (epoch),
-        print numpy.mean(c), 
-        print ', Test MSE',
-        print numpy.mean(e) 
+        print ('Training epoch %d, Train cost %0.3f, Train MSE %0.3f, Test '
+            'MSE %0.3f' % (epoch, numpy.mean(c), numpy.mean(e), numpy.mean(te)))       
+        
             
     end_time = time.time()
     print >> sys.stderr, ('The fine tuning code for file ' +
