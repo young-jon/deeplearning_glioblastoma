@@ -18,7 +18,6 @@ from jdy_A import A
 from jdy_utils import load_data, save_short, save_med_pkl, save_med_npy
 
 
-
 class DAfinetune(object):
     """Deep Autoencoder (easiest to think of as an unsupervised deep neural 
     network) with unsupervised global backpropagation for fine-tuning an already
@@ -56,7 +55,6 @@ class DAfinetune(object):
         :param corruption_levels: amount of corruption to use for each
                                   layer
         """
-
         self.hidden_layers = []
         self.params = []
         self.n_layers = len(hidden_layers_sizes)
@@ -73,7 +71,6 @@ class DAfinetune(object):
         decoder_layers = hidden_layers_sizes[:]
         decoder_layers.reverse()
         unrolled_hidden_layers_sizes = hidden_layers_sizes + decoder_layers[1:]
-
 
         for i in xrange(len(unrolled_hidden_layers_sizes)):
             # construct the hidden layers
@@ -121,7 +118,6 @@ class DAfinetune(object):
                                         activation=T.nnet.sigmoid)
 
         self.params.extend(self.reconstructionLayer.params)
-
 
     def get_cost_updates(self, learning_rate): 
         """ This function computes the cost and the updates for one trainng
@@ -193,7 +189,6 @@ class DAfinetune(object):
 
         return mse
 
-
     def build_finetune_functions(self, train_set_x, valid_set_x, test_set_x, 
                             batch_size): 
         ### removed learning_rate from function parameters
@@ -212,9 +207,7 @@ class DAfinetune(object):
         :param batch_size: size of a minibatch
         :type learning_rate: float
         :param learning_rate: learning rate used during finetune stage
-
         '''
-
         ### compute number of minibatches for validation and testing
         n_valid_batches = valid_set_x.get_value(borrow=True).shape[0]
         n_valid_batches /= batch_size
@@ -236,31 +229,7 @@ class DAfinetune(object):
         batch_begin = index * batch_size
         # ending of a batch given `index`
         batch_end = batch_begin + batch_size
-
-
         
-
-        # test_score_i = theano.function([index], self.errors,
-        #          givens={self.x: test_set_x[index * batch_size:
-        #                                     (index + 1) * batch_size],
-        #                  self.y: test_set_y[index * batch_size:
-        #                                     (index + 1) * batch_size]})
-
-        
-
-        # # Create a function that scans the entire validation set
-        # def valid_score():
-        #     return [valid_score_i(i) for i in xrange(n_valid_batches)]
-
-        # # Create a function that scans the entire test set
-        # def test_score():
-        #     return [test_score_i(i) for i in xrange(n_test_batches)]
-
-        # return train_fn, valid_score, test_score
-        ### end DLT code block
-        
-
-
         # get the cost and the updates list
         cost, updates = self.get_cost_updates(learning_rate=learning_rate)
         
@@ -282,15 +251,11 @@ class DAfinetune(object):
                              givens={self.x: test_set_x[batch_begin:
                                                          batch_end]})
 
-
-        # return (train_fns, valid_fns)
         return train_fn, test_fn
-
 
 def test_DAfinetune(finetune_lr=0.1, pretraining_epochs=1,
              pretrain_lr=0.1, k=1, training_epochs=5,
              dataset='/Users/jon/Data/mnist/mnist.pkl.gz', batch_size=10):
-    ### finetune_lr and training_epochs not needed for SRBM
 
     """
     Demonstrates how to train and test a Deep Autoencoder.
@@ -388,15 +353,12 @@ def test_DAfinetune(finetune_lr=0.1, pretraining_epochs=1,
         print ', Test MSE',
         print numpy.mean(e) 
             
-
-
     end_time = time.time()
     print >> sys.stderr, ('The fine tuning code for file ' +
                           os.path.split(__file__)[1] +
                           ' ran for %.2fm' % ((end_time - start_time)
                                               / 60.))
 
-    
     ### NOTES ###
     # Now any function training_fn takes as arguments index and optionally 
     # lr - the learning rate. Note that the names of the parameters are the names
@@ -410,53 +372,12 @@ def test_DAfinetune(finetune_lr=0.1, pretraining_epochs=1,
     # http://deeplearning.net/software/theano/tutorial/examples.html#logistic-function            
 
 
-    
-
-    #         ### jdy code block
-    #         # print srbm_sa.params 
     #         # print 'layer %i, epoch %d' % (layer,ep)
-    #         # jdy_params0train = srbm_sa.params[layer * 2].get_value() 
-    #         # print jdy_params0train.shape
-    #         # print jdy_params0train[0:3, 0:3]
-    #         ###
 
-
-    # ## jdy code block
-    # print layer, ep, b_index
-    # params = type(srbm_sa.params[0])
-    # print params
-
-
-    # print srbm_sa.params
-    # print 'layer0'
-    # print srbm_sa.params[0].get_value()[0:3, 0:3]
-    # print 'layer1'
-    # print srbm_sa.params[2].get_value()[0:3, 0:3]
-    # print 'layer2'
-    # print srbm_sa.params[4].get_value()[0:3, 0:3]
-    # ##
-
-    # train_fn, validate_model, test_model = srbm_sa.build_finetune_functions(
-    #             datasets=datasets, batch_size=batch_size,
-    #             learning_rate=finetune_lr)
-
-    # print '... finetunning the model'
-    # # early-stopping parameters
-    # patience = 4 * n_train_batches  # look as this many examples regardless
-    # patience_increase = 2.    # wait this much longer when a new best is
-    #                           # found
-    # improvement_threshold = 0.995  # a relative improvement of this much is
-    #                                # considered significant
-    # validation_frequency = min(n_train_batches, patience / 2)
-    #                               # go through this many
-    #                               # minibatche before checking the network
-    #                               # on the validation set; in this case we
-    #                               # check every epoch
 
     # best_params = None
     # best_validation_loss = numpy.inf
     # test_score = 0.
-    # start_time = time.time()
 
     # done_looping = False
     # epoch = 0
