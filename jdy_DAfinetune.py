@@ -284,11 +284,11 @@ class DAfinetune(object):
 
 
         # return (train_fns, valid_fns)
-        return train_fn
+        return train_fn, test_fn
 
 
 def test_DAfinetune(finetune_lr=0.1, pretraining_epochs=1,
-             pretrain_lr=0.1, k=1, training_epochs=2,
+             pretrain_lr=0.1, k=1, training_epochs=5,
              dataset='/Users/jon/Data/mnist/mnist.pkl.gz', batch_size=10):
     ### finetune_lr and training_epochs not needed for SRBM
 
@@ -328,13 +328,13 @@ def test_DAfinetune(finetune_lr=0.1, pretraining_epochs=1,
     
     # compute number of minibatches for training, validation and testing
     n_train_batches = train_set_x.get_value(borrow=True).shape[0] / batch_size
-    #print n_train_batches
+    n_test_batches = test_set_x.get_value(borrow=True).shape[0] / batch_size
 
     # numpy random generator
     numpy_rng = numpy.random.RandomState(123)
     print '... building the model'
 
-    # construct the SRBM_SA 
+    # construct the Deep Autoencoder 
     dafinetune = DAfinetune(numpy_rng=numpy_rng, n_ins=28 * 28,
               hidden_layers_sizes=[1000, 500, 250, 30])
 
@@ -359,7 +359,8 @@ def test_DAfinetune(finetune_lr=0.1, pretraining_epochs=1,
     # get the training, validation and testing function for the model
     print '... getting the finetuning functions'
 
-    training_fn = dafinetune.build_finetune_functions(train_set_x=train_set_x,
+    training_fn, testing_fn = dafinetune.build_finetune_functions(
+                                                train_set_x=train_set_x,
                                                 valid_set_x=valid_set_x, 
                                                 test_set_x=test_set_x,
                                                 batch_size=batch_size)
@@ -370,17 +371,23 @@ def test_DAfinetune(finetune_lr=0.1, pretraining_epochs=1,
     # for each epoch
     for epoch in xrange(training_epochs):
         c = []
-        #for each batch, append the cost for that batch (should be 5000 costs in c)
+        # TRAIN SET COST: for each batch, append the cost for that batch (should 
+        # be 5000 costs in c)
         for batch_index in xrange(n_train_batches):
             c.append(training_fn(index=batch_index, lr=pretrain_lr))
+
+
+        # TEST SET ERROR: calculate test set error for each epoch
+        e = []
+        for i in xrange(n_test_batches):
+            e.append(testing_fn(index=i))
+
+        # print results to screen
+        print 'Training epoch %d, Train cost' % (epoch),
+        print numpy.mean(c), 
+        print ', Test MSE',
+        print numpy.mean(e) 
             
-        print 'Training epoch %d, cost' % (epoch),
-        print numpy.mean(c)
-
-
-
-
-
 
 
     end_time = time.time()
