@@ -59,6 +59,12 @@ Before epoch 5 Train squared error:  7.661 Test squared error:  7.644
 
 
 jdy_DAfinetune FOR 5 EPOCHS (NO PRETRAINING):
+hyperparams:
+def test_DAfinetune(finetune_lr=0.1, pretraining_epochs=1,
+             pretrain_lr=0.1, k=1, training_epochs=5,
+             dataset='/Users/jon/Data/mnist/mnist.pkl.gz', batch_size=10):
+dafinetune = DAfinetune(numpy_rng=numpy_rng, n_ins=28 * 28,
+              hidden_layers_sizes=[1000, 500, 250, 30])
 
 In [63]: run jdy_DAfinetune.py
 True
