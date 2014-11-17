@@ -23,9 +23,9 @@ class DAfinetune(object):
     network) with unsupervised global backpropagation for fine-tuning an already
     pre-trained model (can also run without pretraining).
 
-    This is the fine-tuning (DAfinetune) step of a Srbm_DAfinetune. jdy_SA.py is a stacked 
-    autoencoder that is trained layber-by-layer and should only be used for 
-    pretraining.
+    This is the fine-tuning (DAfinetune) step of a Srbm_DAfinetune. jdy_SA.py is
+    a stacked autoencoder that is trained layber-by-layer and should only be 
+    used for pretraining.
     """
 
     def __init__(self, numpy_rng, theano_rng=None, n_ins=784,
@@ -42,7 +42,7 @@ class DAfinetune(object):
                            generated based on a seed drawn from `rng`
 
         :type n_ins: int
-        :param n_ins: dimension of the input to the SA
+        :param n_ins: dimension of the input to the DA
 
         :type n_layers_sizes: list of ints
         :param n_layers_sizes: intermediate layers size, must contain
@@ -83,9 +83,8 @@ class DAfinetune(object):
             else:
                 input_size = unrolled_hidden_layers_sizes[i - 1]
 
-            # the input to this layer is either the activation of the
-            # hidden layer below or the input of the SRBM_SA if you are on
-            # the first layer
+            # the input to this layer is either the activation of the hidden 
+            # layer below or the input to the DA if you are on the first layer
             if i == 0:
                 layer_input = self.x
             else:
@@ -312,9 +311,9 @@ def test_DAfinetune(finetune_lr=0.1, training_epochs=5,
     # print dafinetune.params[4].get_value()[0:3, 0:3]
     ###
 
-    # # save_short(srbm_sa, '/Users/jon/models/DBNDA_theano/model_test.pkl')
-    # # save_med_pkl(srbm_sa, '/Users/jon/models/DBNDA_theano/model_test2.pkl')
-    # # save_med_npy(srbm_sa, '/Users/jon/models/DBNDA_theano/model_test3.npy')
+    # # save_short(dafinetune, '/Users/jon/models/DBNDA_theano/model_test.pkl')
+    # # save_med_pkl(dafinetune, '/Users/jon/models/DBNDA_theano/model_test2.pkl')
+    # # save_med_npy(dafinetune, '/Users/jon/models/DBNDA_theano/model_test3.npy')
 
     ########################
     # FINETUNING THE MODEL #
@@ -371,9 +370,6 @@ def test_DAfinetune(finetune_lr=0.1, training_epochs=5,
     # the DA. Each call to this fxn returns the cost and updates the parameters 
     # for the entire model. See 'Shared Variable' section here: 
     # http://deeplearning.net/software/theano/tutorial/examples.html#logistic-function            
-
-
-    #         # print 'layer %i, epoch %d' % (layer,ep)
 
 
     # best_params = None
