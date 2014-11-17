@@ -253,10 +253,9 @@ class DAfinetune(object):
 
         return train_fn, test_fn
 
-def test_DAfinetune(finetune_lr=0.1, pretraining_epochs=1,
-             pretrain_lr=0.1, k=1, training_epochs=5,
-             dataset='/Users/jon/Data/mnist/mnist.pkl.gz', batch_size=10):
-
+def test_DAfinetune(finetune_lr=0.1, training_epochs=5, 
+                hidden_layers_sizes=[1000, 500, 250, 30],
+                dataset='/Users/jon/Data/mnist/mnist.pkl.gz', batch_size=10):
     """
     Demonstrates how to train and test a Deep Autoencoder.
 
@@ -265,15 +264,6 @@ def test_DAfinetune(finetune_lr=0.1, pretraining_epochs=1,
     :type finetune_lr: float
     :param finetune_lr: learning rate used in the finetune stage
     :default: 0.1
-    :type pretraining_epochs: int
-    :param pretraining_epochs: number of epoch to do pretraining 
-    :default: 100
-    :type pretrain_lr: float
-    :param pretrain_lr: learning rate to be used during pre-training
-    :default: 0.01
-    :type k: int
-    :param k: number of Gibbs steps in CD/PCD
-    :default: 1
     :type training_epochs: int
     :param training_epochs: maximal number of iterations to run the optimizer. 
     :default: 1000
@@ -301,7 +291,7 @@ def test_DAfinetune(finetune_lr=0.1, pretraining_epochs=1,
 
     # construct the Deep Autoencoder 
     dafinetune = DAfinetune(numpy_rng=numpy_rng, n_ins=28 * 28,
-              hidden_layers_sizes=[1000, 500, 250, 30])
+              hidden_layers_sizes=hidden_layers_sizes)
 
     ### jdy code block
     print dafinetune.params
@@ -339,7 +329,7 @@ def test_DAfinetune(finetune_lr=0.1, pretraining_epochs=1,
         # TRAIN SET COST: for each batch, append the cost for that batch (should 
         # be 5000 costs in c)
         for batch_index in xrange(n_train_batches):
-            c.append(training_fn(index=batch_index, lr=pretrain_lr))
+            c.append(training_fn(index=batch_index, lr=finetune_lr))
 
 
         # TEST SET ERROR: calculate test set error for each epoch
