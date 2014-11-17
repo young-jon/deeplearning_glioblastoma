@@ -1,0 +1,94 @@
+RESULTS OF HINTON"S CODE VS. jdy_DAfinetune
+
+HINTON RESULTS 5 EPOCHS PROJECT2 CODE:
+
+hyperparams:
+
+mnistdeepauto.m:
+maxepoch=5; %In the Science paper we use maxepoch=50, but it works just fine. 
+numhid=1000; numpen=500; numpen2=250; numopen=30;
+
+rbm.m:
+epsilonw      = 0.1;   % Learning rate for weights 
+epsilonvb     = 0.1;   % Learning rate for biases of visible units 
+epsilonhb     = 0.1;   % Learning rate for biases of hidden units 
+weightcost  = 0.0002;   
+initialmomentum  = 0.5;
+finalmomentum    = 0.9;
+
+backprop.m:
+maxepoch=5;
+
+ABBREVIATED OUTPUT FROM MNISTDEEPAUTO.m
+Pretraining hintons code with 5 epochs of pretraining and 5 epochs of backprop
+pretraining layer 1:
+epoch 1 error 821879.5
+epoch 2 error 521838.0
+epoch 3 error 476419.4
+epoch 4 error 455224.8
+epoch 5 error 442101.1
+pretraining layer 2:
+1361318.5
+855124.1
+750724.9
+682769.8
+632636.6
+pretraining layer 3:
+616707.6
+390327.1 
+359962.1
+345498.7
+337303.5
+pretraining layer 4:
+1767797.8
+1077540.9
+863250.7
+750378.4
+682054.7
+
+Fine-tuning deep autoencoder by minimizing cross entropy error. 
+60 batches of 1000 cases each. 
+Size of the training dataset= 60000 
+Size of the test dataset= 10000 
+Displaying in figure 1: Top row - real data, Bottom row -- reconstructions 
+Before epoch 1 Train squared error: 16.827 Test squared error: 16.470 	 	 
+Before epoch 2 Train squared error:  8.988 Test squared error:  8.920 	 	 
+Before epoch 3 Train squared error:  8.325 Test squared error:  8.281 	 	 
+Before epoch 4 Train squared error:  7.956 Test squared error:  7.923 	 	 
+Before epoch 5 Train squared error:  7.661 Test squared error:  7.644
+
+
+jdy_DAfinetune FOR 5 EPOCHS (NO PRETRAINING):
+
+In [63]: run jdy_DAfinetune.py
+True
+True
+True
+True
+True
+True
+... building the model
+[W, b, W, b, W, b, W, b, W, b, W, b, W, b, W, b]
+layer0
+[[ 0.09879994 -0.03318569  0.08856042]
+ [ 0.02100114  0.05656936  0.07261958]
+ [ 0.20698177  0.14437415  0.20790022]]
+layer1
+[[ 0.0544301  -0.25127706  0.22170671]
+ [ 0.15351117 -0.2231685   0.1926219 ]
+ [-0.08054012  0.21709459  0.03015934]]
+layer2
+[[-0.20517612  0.18863321  0.30801029]
+ [ 0.14593372  0.29862848  0.09555362]
+ [-0.19470544  0.01221362 -0.31747911]]
+... getting the finetuning functions
+... finetuning the model
+Training epoch 0, Train cost 159.461383821 , Test MSE 27.3362514726
+Training epoch 1, Train cost 122.092912516 , Test MSE 22.4503674889
+Training epoch 2, Train cost 110.982681994 , Test MSE 19.6210845969
+Training epoch 3, Train cost 104.167210089 , Test MSE 17.8154624927
+Training epoch 4, Train cost 100.301036774 , Test MSE 16.7113969513
+The fine tuning code for file jdy_DAfinetune.py ran for 5.32m
+
+
+ 	 
