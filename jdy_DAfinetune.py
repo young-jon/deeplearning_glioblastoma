@@ -126,9 +126,13 @@ class DAfinetune(object):
     def get_cost_updates(self, learning_rate): 
         """ This function computes the cost and the updates for one trainng
         step of the DA.
-        *Note from dA tutorial: 'The reconstruction error can be measured in many
-        ways, depending on the appropriate distributional assumptions on the 
-        input given the code, e.g., using the traditional squared error, or if 
+        I made this exactly like Hinton's code (2006) -- see 'CG_MNIST.m'
+        f = -1/N*sum(sum( XX(:,1:end-1).*log(XXout) + 
+            (1-XX(:,1:end-1)).*log(1-XXout)));
+
+        *Note from dA tutorial: 'The reconstruction error can be measured in 
+        many ways,depending on the appropriate distributional assumptions on the 
+        input given the code, e.g., using the traditional squared error , or if 
         the input is interpreted as either bit vectors or vectors of bit 
         probabilities by the reconstruction cross-entropy defined as (see L 
         below). 
@@ -138,13 +142,13 @@ class DAfinetune(object):
         http://www.deeplearning.net/tutorial/dA.html#daa
         http://www.deeplearning.net/tutorial/gettingstarted.html#gettingstarted
         """
-        z = self.reconstructionLayer.output
+        xhat = self.reconstructionLayer.output
         # note : we sum over the size of a datapoint; if we are using
         #        minibatches, L will be a vector, with one entry per
         #        example in minibatch
-        L = - T.sum(self.x * T.log(z) + (1 - self.x) * T.log(1 - z), axis=1)
+        L = - T.sum(self.x * T.log(xhat) + (1-self.x) * T.log(1-xhat), axis=1)
         # note : L is now a vector, where each element is the
-        #        cross-entropy cost of the reconstruction of the
+        #        CROSS-ENTROPY cost of the reconstruction of the
         #        corresponding example of the minibatch. We need to
         #        compute the average of all these to get the cost of
         #        the minibatch
@@ -159,6 +163,35 @@ class DAfinetune(object):
             updates.append((param, param - learning_rate * gparam))
 
         return (cost, updates)
+
+    def get_test_error(self):
+        '''This function computes the mean-squared error for a test set. Can 
+        also use this function for a validation set error. I made this exactly 
+        the same as Hinton's code (2006). see backprop.m. 
+        1/N*sum(sum( (data(:,1:end-1)-dataout).^2 ))
+        
+        note: I use self.x in the equation for sum_sq_errors even though it isnt
+        the train set that I am passing in. self.x just represents the symbolic
+        variable in the symbolic representation of this function. when I pass in
+        test_set or valid_set then it takes the value of what was passed in.'''
+
+        xhat = self.reconstructionLayer.output
+
+        # calculates the sum of the squared errors for each row of the difference 
+        # matrix. adds up all the errors for an example to get a single measure
+        # of error for that example.
+        sum_sq_errors = T.sum((self.x - xhat)**2, axis=1)
+        # note : sum_sq_errors is now a vector, where each element is the
+        #        sum of the squared errors of the reconstruction of the
+        #        corresponding example of the minibatch. We need to
+        #        compute the average of all these to get the mean error of
+        #        the minibatch
+
+        # mse: 1 scalar value that is returned. This is the mse of the batch or 
+        # however many x vectors are passed to the theano function.
+        mse = T.mean(sum_sq_errors)
+
+        return mse
 
 
     def build_finetune_functions(self, train_set_x, valid_set_x, test_set_x, 
