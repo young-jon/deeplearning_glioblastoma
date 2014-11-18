@@ -44,17 +44,17 @@ class DAfinetune(object):
         :type n_ins: int
         :param n_ins: dimension of the input to the DA
 
-        :type n_layers_sizes: list of ints
-        :param n_layers_sizes: intermediate layers size, must contain
+        :type hidden_layers_sizes: list of ints
+        :param hidden_layers_sizes: intermediate layers size, must contain
                                at least one value
 
-        :type n_outs: int
-        :param n_outs: dimension of the output of the network
+        :type weights: list created by preprocess_pretrain_params
+        :param weights: list of weights (theano shared variable) for each layer
 
-        :type corruption_levels: list of float
-        :param corruption_levels: amount of corruption to use for each
-                                  layer
+        :type biases: list created by preprocess_pretrain_params
+        :param biases: list of biases (theano shared variable) for each layer
         """
+
         self.hidden_layers = []
         self.params = []
         self.n_layers = len(hidden_layers_sizes)
