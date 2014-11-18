@@ -92,6 +92,20 @@ class DAfinetune(object):
                 ### could change to self.rbm_layers[-1].propup. then i wouldn't 
                 ### have to create self.hidden_layers
 
+            #if pretraining parameters are passed in, initialize the hidden 
+            #layers appropriately  
+            # if pretrain_params:   
+            #     if i <= (self.n_layers - 1):
+            #         W = pretrain_params[i*3].get_value()
+            #         b = pretrain_params[(i*3)+1].get_value()
+            #     else:
+            #         W = pretrain_params[(i-self.n_layers)*3].get_value().T
+            #         b = pretrain_params[((i-self.n_layers)*3)+2].get_value()
+            # else:
+            #     W=None
+            #     b=None
+
+
             ### TODO:need to initialize each of these layers with the parameters 
             ### learned during pretraining. When get these weights should pass 
             ### them as values (.get_value) not as symbolic variables
@@ -99,8 +113,8 @@ class DAfinetune(object):
                                         input=layer_input,
                                         n_in=input_size,
                                         n_out=unrolled_hidden_layers_sizes[i],
-                                        #W=  ,
-                                        #b=  , 
+                                        # W=W,
+                                        # b=b, 
                                         activation=T.nnet.sigmoid)
             ###could create a file of user-defined activation functions. 
             ###activation function could be passed to DAfinetune init
