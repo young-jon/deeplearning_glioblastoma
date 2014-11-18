@@ -49,6 +49,17 @@ def run_Srbm_DAfinetune(pretraining_epochs=0, training_epochs=1,
 	print srbm.params[2].get_value()[0:3, 0:3]
 	print 'layer2'
 	print srbm.params[4].get_value()[0:3, 0:3]
+	print ''
+	print srbm.params[1].get_value().shape
+	print srbm.params[3].get_value().shape
+	print srbm.params[5].get_value().shape
+	print srbm.params[7].get_value().shape
+	print srbm.params[7].get_value()
+	print srbm.params[1].get_value().T.shape
+	print srbm.params[3].get_value().T.shape
+	print srbm.params[5].get_value().T.shape
+	print srbm.params[7].get_value().T.shape
+	print srbm.params[7].get_value().T
 	###
 
 	print '... getting the pretraining functions'
@@ -95,8 +106,9 @@ def run_Srbm_DAfinetune(pretraining_epochs=0, training_epochs=1,
 
 	print '... building the Deep Autoencoder model'
 	# construct the Deep Autoencoder 
-	dafinetune = DAfinetune(numpy_rng=numpy_rng, n_ins=784,
-	          hidden_layers_sizes=hidden_layers_sizes)
+	dafinetune = DAfinetune(numpy_rng=numpy_rng, n_ins=784, 
+				pretrain_params=srbm.params, 
+				hidden_layers_sizes=hidden_layers_sizes)
 
 	### jdy code block
 	print dafinetune.params

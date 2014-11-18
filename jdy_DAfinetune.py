@@ -28,8 +28,8 @@ class DAfinetune(object):
     used for pretraining.
     """
 
-    def __init__(self, numpy_rng, theano_rng=None, n_ins=784,
-                 hidden_layers_sizes=[500, 500]):
+    def __init__(self, numpy_rng, theano_rng=None, n_ins=784, 
+                pretrain_params=None, hidden_layers_sizes=[500, 500]):
         ### removed 'corruption_levels=[0.1, 0.1]' from def __init__
         """ This class is made to support a variable number of layers.
 
@@ -98,7 +98,9 @@ class DAfinetune(object):
             hidden_layer = HiddenLayer(rng=numpy_rng,
                                         input=layer_input,
                                         n_in=input_size,
-                                        n_out=unrolled_hidden_layers_sizes[i], 
+                                        n_out=unrolled_hidden_layers_sizes[i],
+                                        #W=  ,
+                                        #b=  , 
                                         activation=T.nnet.sigmoid)
             ###could create a file of user-defined activation functions. 
             ###activation function could be passed to DAfinetune init

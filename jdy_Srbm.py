@@ -66,6 +66,7 @@ class SRBM(object):
         ### it easier to get input for each rbm.
         self.rbm_layers = []
         self.params = []
+        self.rbm_params = []
         self.n_layers = len(hidden_layers_sizes)
 
         assert self.n_layers > 0
@@ -140,6 +141,9 @@ class SRBM(object):
                             W=sigmoid_layer.W,  ###HiddenLayer class initializes
                             hbias=sigmoid_layer.b)  
             self.rbm_layers.append(rbm_layer)
+
+            # add rbm parameters (this includes W, hbias, vbias)
+            self.rbm_params.extend(rbm_layer.params)
 
         # We now need to add a logistic layer on top of the MLP
         ###can remove this
