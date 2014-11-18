@@ -29,7 +29,7 @@ class DAfinetune(object):
     """
 
     def __init__(self, numpy_rng, theano_rng=None, n_ins=784, 
-                pretrain_params=None, hidden_layers_sizes=[500, 500]):
+                 weights=None, biases=None, hidden_layers_sizes=[500, 500]):
         ### removed 'corruption_levels=[0.1, 0.1]' from def __init__
         """ This class is made to support a variable number of layers.
 
@@ -67,10 +67,23 @@ class DAfinetune(object):
         # allocate symbolic variables for the data
         self.x = T.matrix('x')  # the data is presented as rasterized images
         
+        #create list of None values if weights and biases are not passed in
+        n_da_layers = self.n_layers * 2
+        if weights is None and biases is None:
+            weights = []
+            biases = []
+            for j in xrange(n_da_layers):
+                weights.append(None)
+                biases.append(None)
+        else:
+            assert len(weights) == n_da_layers
+            assert len(biases) == n_da_layers
+
         #create list of hidden layer output sizes
         decoder_layers = hidden_layers_sizes[:]
         decoder_layers.reverse()
         unrolled_hidden_layers_sizes = hidden_layers_sizes + decoder_layers[1:]
+
 
         for i in xrange(len(unrolled_hidden_layers_sizes)):
             # construct the hidden layers
@@ -113,8 +126,8 @@ class DAfinetune(object):
                                         input=layer_input,
                                         n_in=input_size,
                                         n_out=unrolled_hidden_layers_sizes[i],
-                                        # W=W,
-                                        # b=b, 
+                                        W=W,
+                                        b=b, 
                                         activation=T.nnet.sigmoid)
             ###could create a file of user-defined activation functions. 
             ###activation function could be passed to DAfinetune init

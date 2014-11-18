@@ -12,6 +12,7 @@ from jdy_utils import load_data, save_short, save_med_pkl, save_med_npy
 
 
 def preprocess_pretrain_params(object_params):
+	#maybe put this in jdy_utils
 	'''
 	creates a list of non transposed weights and biases (in the correct 
 	order) to be used when the pretraining parameters are used to initialize a 
@@ -163,7 +164,7 @@ def run_Srbm_DAfinetune(pretraining_epochs=1, training_epochs=5,
 	print '... building the Deep Autoencoder model'
 	# construct the Deep Autoencoder 
 	dafinetune = DAfinetune(numpy_rng=numpy_rng, n_ins=784, 
-				W=weights, b=biases, 
+				weights=weights, biases=biases, 
 				hidden_layers_sizes=hidden_layers_sizes)
 
 
