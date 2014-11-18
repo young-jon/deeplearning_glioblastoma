@@ -66,18 +66,16 @@ class DAfinetune(object):
 
         # allocate symbolic variables for the data
         self.x = T.matrix('x')  # the data is presented as rasterized images
-        
-        #create list of None values if weights and biases are not passed in
-        n_da_layers = self.n_layers * 2
-        if weights is None and biases is None:
-            weights = []
-            biases = []
-            for j in xrange(n_da_layers):
-                weights.append(None)
-                biases.append(None)
+
+        #assert length for weights and biases,and sets defaults if not passed in
+        if weights is None:
+            W = None
         else:
-            assert len(weights) == n_da_layers
-            assert len(biases) == n_da_layers
+            assert len(weights) == self.n_layers * 2
+        if biases is None:
+            b = None
+        else:
+            assert len(biases) == self.n_layers * 2
 
         #create list of hidden layer output sizes
         decoder_layers = hidden_layers_sizes[:]
@@ -85,9 +83,9 @@ class DAfinetune(object):
         unrolled_hidden_layers_sizes = hidden_layers_sizes + decoder_layers[1:]
 
 
+        # construct the hidden layers
         for i in xrange(len(unrolled_hidden_layers_sizes)):
-            # construct the hidden layers
-
+            
             # the size of the input is either the number of hidden
             # units of the layer below or the input size if we are on
             # the first layer
@@ -106,18 +104,15 @@ class DAfinetune(object):
                 ### have to create self.hidden_layers
 
             #if pretraining parameters are passed in, initialize the hidden 
-            #layers appropriately  
-            # if pretrain_params:   
-            #     if i <= (self.n_layers - 1):
-            #         W = pretrain_params[i*3].get_value()
-            #         b = pretrain_params[(i*3)+1].get_value()
-            #     else:
-            #         W = pretrain_params[(i-self.n_layers)*3].get_value().T
-            #         b = pretrain_params[((i-self.n_layers)*3)+2].get_value()
-            # else:
-            #     W=None
-            #     b=None
-
+            #layers appropriately. make sure to get the transpose of the decoder
+            #layers
+            if weights:
+                if i <= (self.n_layers - 1): 
+                    W = weights[i].get_value()
+                else:
+                    W = weights[i].get_value().T
+            if biases:
+                b = biases[i].get_value()
 
             ### TODO:need to initialize each of these layers with the parameters 
             ### learned during pretraining. When get these weights should pass 
@@ -139,10 +134,16 @@ class DAfinetune(object):
             self.params.extend(hidden_layer.params) 
 
         # create reconstruction layer
+        if weights:
+            W = weights[-1].get_value().T
+        if biases:
+            b = biases[-1].get_value()
         self.reconstructionLayer = HiddenLayer(rng=numpy_rng,
                                         input=self.hidden_layers[-1].output,
                                         n_in=unrolled_hidden_layers_sizes[-1],
                                         n_out=n_ins, ###
+                                        W=W,
+                                        b=b,
                                         activation=T.nnet.sigmoid)
 
         self.params.extend(self.reconstructionLayer.params)
