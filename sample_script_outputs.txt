@@ -98,4 +98,115 @@ Training epoch 4, Train cost 100.301036774 , Test MSE 16.7113969513
 The fine tuning code for file jdy_DAfinetune.py ran for 5.32m
 
 
+ADDED ON 2/4/15: RAN jdy_Srbm_DAfinetune.py with 5 epochs of pretraining and training.
+CONCLUSION: very similar to hinton's code but not exact. they have different params (e.g. momentum,etc.) and also use conjugate gradient descent with 3 line searches, wheras my DLT uses stochastic gradient descent.  however test for my code is decreasing and close to hinton's, so success!
+In [4]: run jdy_Srbm_DAfinetune.py
+True
+True
+True
+True
+True
+True
+... building the Stacked RBMs model
+[W, b, W, b, W, b, W, b]
+layer0
+[[ 0.09879994 -0.03318569  0.08856042]
+ [ 0.02100114  0.05656936  0.07261958]
+ [ 0.20698177  0.14437415  0.20790022]] 0.0
+layer1
+[[ 0.0544301  -0.25127706  0.22170671]
+ [ 0.15351117 -0.2231685   0.1926219 ]
+ [-0.08054012  0.21709459  0.03015934]] 0.0
+layer2
+[[-0.20517612  0.18863321  0.30801029]
+ [ 0.14593372  0.29862848  0.09555362]
+ [-0.19470544  0.01221362 -0.31747911]] 0.0
+
+[W, b, vbias, W, b, vbias, W, b, vbias, W, b, vbias]
+layer0
+[[ 0.09879994 -0.03318569  0.08856042]
+ [ 0.02100114  0.05656936  0.07261958]
+ [ 0.20698177  0.14437415  0.20790022]] <type 'numpy.float64'> 0.0
+layer1
+[[ 0.0544301  -0.25127706  0.22170671]
+ [ 0.15351117 -0.2231685   0.1926219 ]
+ [-0.08054012  0.21709459  0.03015934]] 0.0 0.0
+layer2
+[[-0.20517612  0.18863321  0.30801029]
+ [ 0.14593372  0.29862848  0.09555362]
+ [-0.19470544  0.01221362 -0.31747911]] 0.0 0.0
+... getting the pretraining functions
+... pre-training the model
+Pre-training layer 0, epoch 0, cost  -90.5945579445
+Pre-training layer 0, epoch 1, cost  -80.7617367829
+Pre-training layer 0, epoch 2, cost  -78.5233393924
+Pre-training layer 0, epoch 3, cost  -77.2032500889
+Pre-training layer 0, epoch 4, cost  -76.3769016574
+Pre-training layer 1, epoch 0, cost  -117.952507131
+Pre-training layer 1, epoch 1, cost  -107.600272943
+Pre-training layer 1, epoch 2, cost  -105.544047267
+Pre-training layer 1, epoch 3, cost  -104.553280806
+Pre-training layer 1, epoch 4, cost  -103.94593776
+Pre-training layer 2, epoch 0, cost  -48.7889834978
+Pre-training layer 2, epoch 1, cost  -43.2012438341
+Pre-training layer 2, epoch 2, cost  -42.1890048755
+Pre-training layer 2, epoch 3, cost  -41.6568766067
+Pre-training layer 2, epoch 4, cost  -41.3076273755
+Pre-training layer 3, epoch 0, cost  -50.7193920015
+Pre-training layer 3, epoch 1, cost  -45.719439261
+Pre-training layer 3, epoch 2, cost  -45.026900674
+Pre-training layer 3, epoch 3, cost  -44.6939494458
+Pre-training layer 3, epoch 4, cost  -44.4755753046
+The pretraining code for file jdy_Srbm_DAfinetune.py ran for 6.61m
+[W, b, W, b, W, b, W, b]
+layer0
+[[-0.02314185 -0.12913339 -0.00195169]
+ [-0.07885191 -0.00112645  0.02779282]
+ [ 0.07682574  0.09621697  0.12614404]] -0.225129583558
+layer1
+[[ 0.13085114 -0.07994087  0.155088  ]
+ [ 0.0133846  -0.07898979  0.1730922 ]
+ [-0.19625956 -0.69803568 -0.22991477]] -0.928313431466
+layer2
+[[-0.20696584  0.14986213  0.09716872]
+ [-0.01807664 -0.36343687 -0.22260987]
+ [-0.81942192 -0.55352551 -0.19310986]] -0.765851728499
+
+[W, b, vbias, W, b, vbias, W, b, vbias, W, b, vbias]
+layer0
+[[-0.02314185 -0.12913339 -0.00195169]
+ [-0.07885191 -0.00112645  0.02779282]
+ [ 0.07682574  0.09621697  0.12614404]] -0.225129583558 -0.81
+layer1
+[[ 0.13085114 -0.07994087  0.155088  ]
+ [ 0.0133846  -0.07898979  0.1730922 ]
+ [-0.19625956 -0.69803568 -0.22991477]] -0.928313431466 -1.2232986785
+layer2
+[[-0.20696584  0.14986213  0.09716872]
+ [-0.01807664 -0.36343687 -0.22260987]
+ [-0.81942192 -0.55352551 -0.19310986]] -0.765851728499 -0.791610083541
+... building the Deep Autoencoder model
+[W, b, W, b, W, b, W, b, W, b, W, b, W, b, W, b]
+layer0
+[[-0.02314185 -0.12913339 -0.00195169]
+ [-0.07885191 -0.00112645  0.02779282]
+ [ 0.07682574  0.09621697  0.12614404]]
+layer1
+[[ 0.13085114 -0.07994087  0.155088  ]
+ [ 0.0133846  -0.07898979  0.1730922 ]
+ [-0.19625956 -0.69803568 -0.22991477]]
+layer2
+[[-0.20696584  0.14986213  0.09716872]
+ [-0.01807664 -0.36343687 -0.22260987]
+ [-0.81942192 -0.55352551 -0.19310986]]
+... getting the finetuning functions
+... finetuning the model
+Training epoch 0, Train cost 93.189, Train MSE 14.324, Test MSE 13.075
+Training epoch 1, Train cost 84.455, Train MSE 11.481, Test MSE 11.265
+Training epoch 2, Train cost 80.048, Train MSE 10.051, Test MSE 10.290
+Training epoch 3, Train cost 77.469, Train MSE 9.220, Test MSE 9.673
+Training epoch 4, Train cost 75.541, Train MSE 8.604, Test MSE 9.077
+The fine tuning code for file jdy_Srbm_DAfinetune.py ran for 3.61m
+
+
  	 

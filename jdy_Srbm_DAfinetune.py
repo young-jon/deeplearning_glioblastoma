@@ -50,7 +50,7 @@ def preprocess_pretrain_params(object_params):
 
 	return weights, biases
 
-def run_Srbm_DAfinetune(pretraining_epochs=1, training_epochs=5, 
+def run_Srbm_DAfinetune(pretraining_epochs=5, training_epochs=10, 
 						hidden_layers_sizes=[1000, 500, 250, 30],
 						finetune_lr=0.1, pretrain_lr=0.1, 
 						k=1, batch_size=10, 
@@ -217,6 +217,20 @@ def run_Srbm_DAfinetune(pretraining_epochs=1, training_epochs=5,
 	                      os.path.split(__file__)[1] +
 	                      ' ran for %.2fm' % ((end_time - start_time)
 	                                          / 60.))
+
+
+# def test_Srbm_DAfinetune():
+# 	'''this test should give the output in evernote 'research2' 2/4/15. 
+# 	this function does not currently work. need to write code to print True if 
+# 	final state of the model (e.g. Test MSE == 9.077). would be nice to test a
+# 	sampling of intermediate weights and errors as well...'''
+# 	srbm = run_Srbm_DAfinetune(pretraining_epochs=5, training_epochs=5, 
+# 						hidden_layers_sizes=[1000, 500, 250, 30],
+# 						finetune_lr=0.1, pretrain_lr=0.1, 
+# 						k=1, batch_size=10, 
+# 						dataset='/Users/jdy10/Data/mnist/mnist.pkl.gz'):
+# 	### need to make sure this randomstate is used:
+# 	numpy_rng = numpy.random.RandomState(123)
 
 
 if __name__ == '__main__':
