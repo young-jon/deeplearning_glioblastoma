@@ -192,7 +192,7 @@ class SdA(object):
         corruption_level = T.scalar('corruption')  # % of corruption to use
         learning_rate = T.scalar('lr')  # learning rate to use
         # number of batches
-        n_batches = train_set_x.get_value(borrow=True).shape[0] / batch_size
+        n_batches = train_set_x.get_value(borrow=True).shape[0] / batch_size ###don't need this line
         # begining of a batch, given `index`
         batch_begin = index * batch_size
         # ending of a batch given `index`
@@ -435,9 +435,14 @@ def test_SdA(finetune_lr=0.1, pretraining_epochs=15,
                 break
 
     end_time = time.clock()
-    print(('Optimization complete with best validation score of %f %%,'
-           'with test performance %f %%') %
-                 (best_validation_loss * 100., test_score * 100.))
+    print(
+        (
+            'Optimization complete with best validation score of %f %%, '
+            'on iteration %i, '
+            'with test performance %f %%'
+        ) 
+        % (best_validation_loss * 100., best_iter + 1, test_score * 100.)
+    )
     print >> sys.stderr, ('The training code for file ' +
                           os.path.split(__file__)[1] +
                           ' ran for %.2fm' % ((end_time - start_time) / 60.))

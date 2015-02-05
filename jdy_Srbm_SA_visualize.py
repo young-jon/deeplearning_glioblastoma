@@ -1,5 +1,3 @@
-"""
-"""
 import cPickle
 import gzip
 import os
@@ -367,7 +365,7 @@ class SRBM_SA(object):
         ### end jdy code block
 
 
-def test_SRBM_SA(finetune_lr=0.1, pretraining_epochs=11,
+def test_SRBM_SA(finetune_lr=0.1, pretraining_epochs=2,
              pretrain_lr=0.1, k=1, training_epochs=1,
              dataset='/Users/jdy10/Data/mnist/mnist.pkl.gz', batch_size=10):
     ### finetune_lr and training_epochs not needed for SRBM
@@ -494,7 +492,7 @@ def test_SRBM_SA(finetune_lr=0.1, pretraining_epochs=11,
                 all_images[20:40] = r_2d_ndarray[311:331]
                 print 'HERE epoch 1'
 
-            if i == 0 and epoch == 9:
+            if i == 0 and epoch == 1:
                 r_3d_ndarray = numpy.asarray(r)
                 r_2d_ndarray = r_3d_ndarray.reshape(50000,784)
                 all_images[40:60] = r_2d_ndarray[311:331]
