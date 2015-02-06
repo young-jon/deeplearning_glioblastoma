@@ -50,7 +50,7 @@ def preprocess_pretrain_params(object_params):
 
 	return weights, biases
 
-def run_Srbm_DAfinetune(pretraining_epochs=5, training_epochs=10, 
+def run_Srbm_DAfinetune(pretraining_epochs=1, training_epochs=1, 
 						hidden_layers_sizes=[1000, 500, 250, 30],
 						finetune_lr=0.1, pretrain_lr=0.1, 
 						k=1, batch_size=10, 
@@ -77,6 +77,42 @@ def run_Srbm_DAfinetune(pretraining_epochs=5, training_epochs=10,
 	# construct the Stacked RBMs
 	srbm = SRBM(numpy_rng=numpy_rng, n_ins=784, 
 				hidden_layers_sizes=hidden_layers_sizes, n_outs=10)
+
+	### START JDY CODE BLOCK
+	###TODO: RANDOM INITIALIZATION: add code to create reconstructions here after random initialziations of weights 
+	### use srbm.params or srbm.rbm_params
+	### pretrain_unrolled_network = DAfinetune...
+
+	print '**********1111111111'
+	weights, biases = preprocess_pretrain_params(srbm.rbm_params)
+	print '**********2222222222'
+	pretrain_unrolled = DAfinetune(numpy_rng=numpy_rng, n_ins=784, 
+								weights=weights, biases=biases, 
+								hidden_layers_sizes=hidden_layers_sizes)
+	print '**********3333333333'
+	reconstruction_fn = pretrain_unrolled.build_reconstruction_function(
+													input=train_set_x,
+													batch_size=batch_size)
+	print '**********4444444444'
+
+	r=[]  #to store reconstructions
+	for batch_index in xrange(n_train_batches):
+		reconstructions = reconstruction_fn(index=batch_index)
+		r.append(reconstructions)
+	print '**********5555555555'
+	print type(r)       #list
+	print type(r[2])    #numpy.ndarray
+	print r[2].shape    #10,784
+	print r[2].size     #7840
+	print len(r)        #5000
+	print r[2][2]       #[  9.64138480e-01   4.62259240e-01   7.82546112e-01   4.05068000e-01
+   						#   5.82822154e-01   6.93803155e-01   8.82764377e-01   8.89362245e-01...
+	print len(r[2][2])  #784
+	print type(r[2][2]) #numpy.ndarray
+	print '******************************************************************'
+	###END TODO JDY CODE BLOCK
+
+
 
 	### jdy code block
 	print srbm.params
@@ -166,6 +202,9 @@ def run_Srbm_DAfinetune(pretraining_epochs=5, training_epochs=10,
 	dafinetune = DAfinetune(numpy_rng=numpy_rng, n_ins=784, 
 				weights=weights, biases=biases, 
 				hidden_layers_sizes=hidden_layers_sizes)
+
+	###TODO: AFTER PRETRAINING: create reconstructions and add to all_images.
+	###The weights passed to DAfinetune here are the weights immediately after pretraining
 
 
 	### jdy code block

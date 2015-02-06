@@ -291,28 +291,6 @@ class DAfinetune(object):
 
         return train_fn, test_fn
 
-    def build_reconstruction_function(self, input, batch_size):
-        '''Added on 2/5/14. creates reconstruction of input according to model 
-        of DAfinetune object.'''
-
-        index = T.lscalar('index')
-
-        # begining of a batch, given `index`
-        batch_begin = index * batch_size
-        # ending of a batch given `index`
-        batch_end = batch_begin + batch_size
-
-        xhat = self.reconstructionLayer.output
-
-        # compile theano function
-        reconstruction_fn = theano.function(inputs=[index],
-                             outputs=xhat,
-                             givens={self.x: input[batch_begin:batch_end]})
-
-        return reconstruction_fn
-
-
-
 def test_DAfinetune(finetune_lr=0.1, training_epochs=5, 
                 hidden_layers_sizes=[1000, 500, 250, 30],
                 dataset='/Users/jon/Data/mnist/mnist.pkl.gz', batch_size=10):

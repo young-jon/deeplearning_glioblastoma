@@ -499,11 +499,12 @@ def test_SRBM_SA(finetune_lr=0.1, pretraining_epochs=2,
                 print 'HERE epoch 10'
 
 
-            '''print type(r)
-            print type(r[2])
-            print r[2].shape
-            print r[2].size
-            print len(r)
+            print type(r)    #list
+            print type(r[2]) #numpy.ndarray
+            print r[2].shape #10,784
+            print r[2].size  #7840
+            print len(r)     #5000
+            print '******************************************************************'
             print r[2][2]
             print len(c)
             print c[2]
@@ -512,8 +513,8 @@ def test_SRBM_SA(finetune_lr=0.1, pretraining_epochs=2,
             print r[0].shape
             print r[1].shape
             print r[2][9]
-            return r[30][0] ### should be x sample 311 (r[30][9] is 320, r[31][9] is 330, r[32][0] is 321)
-            print r.size'''
+            # return r[30][0] ### should be x sample 311 (r[30][9] is 320, r[31][9] is 330, r[32][0] is 321)
+            # print r.size
 
             ### jdy code block
             # print srbm_sa.params 
