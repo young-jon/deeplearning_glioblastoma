@@ -91,7 +91,7 @@ def run_Srbm_DAfinetune(pretraining_epochs=1, training_epochs=1,
 								hidden_layers_sizes=hidden_layers_sizes)
 	print '**********3333333333'
 	reconstruction_fn = pretrain_unrolled.build_reconstruction_function(
-													input=train_set_x,
+													data=train_set_x,
 													batch_size=batch_size)
 	print '**********4444444444'
 

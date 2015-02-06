@@ -291,7 +291,7 @@ class DAfinetune(object):
 
         return train_fn, test_fn
 
-    def build_reconstruction_function(self, input, batch_size):
+    def build_reconstruction_function(self, data, batch_size):
         '''Added on 2/5/14. creates reconstruction of input according to model 
         of DAfinetune object.'''
 
@@ -307,7 +307,7 @@ class DAfinetune(object):
         # compile theano function
         reconstruction_fn = theano.function(inputs=[index],
                              outputs=xhat,
-                             givens={self.x: input[batch_begin:batch_end]})
+                             givens={self.x: data[batch_begin:batch_end]})
 
         return reconstruction_fn
 
