@@ -9,6 +9,7 @@ import numpy
 from jdy_Srbm import SRBM
 from jdy_DAfinetune import DAfinetune
 from jdy_utils import load_data, save_short, save_med_pkl, save_med_npy
+from jdy_visualize import create_images
 
 
 def preprocess_pretrain_params(object_params):
@@ -50,7 +51,7 @@ def preprocess_pretrain_params(object_params):
 
 	return weights, biases
 
-def run_Srbm_DAfinetune(pretraining_epochs=1, training_epochs=1, 
+def run_Srbm_DAfinetune(pretraining_epochs=1, training_epochs=5, 
 						hidden_layers_sizes=[1000, 500, 250, 30],
 						finetune_lr=0.1, pretrain_lr=0.1, 
 						k=1, batch_size=10, 
@@ -78,39 +79,56 @@ def run_Srbm_DAfinetune(pretraining_epochs=1, training_epochs=1,
 	srbm = SRBM(numpy_rng=numpy_rng, n_ins=784, 
 				hidden_layers_sizes=hidden_layers_sizes, n_outs=10)
 
-	### START JDY CODE BLOCK
+
+
+
+
+	###IMAGES  START JDY CODE BLOCK
+	image_finetune_epochs = [0,2,4]  #finetune epochs after we create an image
+	total_num_images = (len(image_finetune_epochs)+3) * 20
+	### create all_images to store final input data and reconstructions to be 
+	### displayed as a tiled image once the algorithm completes
+	all_images=numpy.zeros((total_num_images,784))
+	all_images[0:20] = train_set_x.get_value()[311:331]
+
 	###TODO: RANDOM INITIALIZATION: add code to create reconstructions here after random initialziations of weights 
 	### use srbm.params or srbm.rbm_params
 	### pretrain_unrolled_network = DAfinetune...
 
-	print '**********1111111111'
 	weights, biases = preprocess_pretrain_params(srbm.rbm_params)
-	print '**********2222222222'
+
 	pretrain_unrolled = DAfinetune(numpy_rng=numpy_rng, n_ins=784, 
 								weights=weights, biases=biases, 
 								hidden_layers_sizes=hidden_layers_sizes)
-	print '**********3333333333'
+
 	reconstruction_fn = pretrain_unrolled.build_reconstruction_function(
 													data=train_set_x,
 													batch_size=batch_size)
-	print '**********4444444444'
-
 	r=[]  #to store reconstructions
 	for batch_index in xrange(n_train_batches):
 		reconstructions = reconstruction_fn(index=batch_index)
 		r.append(reconstructions)
-	print '**********5555555555'
+	
+
 	print type(r)       #list
 	print type(r[2])    #numpy.ndarray
 	print r[2].shape    #10,784
 	print r[2].size     #7840
 	print len(r)        #5000
-	print r[2][2]       #[  9.64138480e-01   4.62259240e-01   7.82546112e-01   4.05068000e-01
-   						#   5.82822154e-01   6.93803155e-01   8.82764377e-01   8.89362245e-01...
+	print r[2][2][0:20]       #[  9.64138480e-01   4.62259240e-01   7.82546112e-01   4.05068000e-01
+   						      #   5.82822154e-01   6.93803155e-01   8.82764377e-01   8.89362245e-01...
+	print r[200][8][0:20]
 	print len(r[2][2])  #784
 	print type(r[2][2]) #numpy.ndarray
 	print '******************************************************************'
+
+	r_3d_ndarray = numpy.asarray(r)
+	r_2d_ndarray = r_3d_ndarray.reshape(50000,784)
+	all_images[20:40] = r_2d_ndarray[311:331]
+	print 'HERE epoch 1'
+
 	###END TODO JDY CODE BLOCK
+
 
 
 
@@ -203,8 +221,26 @@ def run_Srbm_DAfinetune(pretraining_epochs=1, training_epochs=1,
 				weights=weights, biases=biases, 
 				hidden_layers_sizes=hidden_layers_sizes)
 
+	###START JDY CODE BLOCK FOR IMAGES
 	###TODO: AFTER PRETRAINING: create reconstructions and add to all_images.
 	###The weights passed to DAfinetune here are the weights immediately after pretraining
+
+	reconstruction_fn = dafinetune.build_reconstruction_function(
+												data=train_set_x,
+												batch_size=batch_size)
+	r=[]  #to store reconstructions
+	for batch_index in xrange(n_train_batches):
+		reconstructions = reconstruction_fn(index=batch_index)
+		r.append(reconstructions)
+
+	r_3d_ndarray = numpy.asarray(r)
+	r_2d_ndarray = r_3d_ndarray.reshape(50000,784)
+	all_images[40:60] = r_2d_ndarray[311:331]
+	print 'HERE epoch 1asdfasdf'
+
+	###END JDY CODE BLOCK
+
+
 
 
 	### jdy code block
@@ -229,8 +265,14 @@ def run_Srbm_DAfinetune(pretraining_epochs=1, training_epochs=1,
 	print '... finetuning the model'
 	start_time = time.time() 
 
+	###ADDED to keep track of how many image rows have been added to all_images.
+	### If I change the number of rows added to all_images will need to update 
+	### image_row_counter.
+	image_row_counter = 3
+
 	# for each epoch
 	for epoch in xrange(training_epochs):
+
 	    c = []  #list to collect costs
 	    e = []  #list to collect train errors
 	    # TRAIN SET COST: for each batch, append the cost for that batch (should 
@@ -248,7 +290,33 @@ def run_Srbm_DAfinetune(pretraining_epochs=1, training_epochs=1,
 
 	    # print results to screen
 	    print ('Training epoch %d, Train cost %0.3f, Train MSE %0.3f, Test '
-	        'MSE %0.3f' % (epoch, numpy.mean(c), numpy.mean(e), numpy.mean(te)))       
+	        'MSE %0.3f' % (epoch, numpy.mean(c), numpy.mean(e), numpy.mean(te)))
+	    
+
+	    ###START JDY CODE BLOCK IMAGES
+		### append reconstructions using parameters from after 'epoch'
+	    
+	    if epoch in image_finetune_epochs:
+			reconstruction_fn = dafinetune.build_reconstruction_function(
+												data=train_set_x,
+												batch_size=batch_size)
+			r=[]  #to store reconstructions
+			for batch_index in xrange(n_train_batches):
+				reconstructions = reconstruction_fn(index=batch_index)
+				r.append(reconstructions)
+
+			r_3d_ndarray = numpy.asarray(r)
+			r_2d_ndarray = r_3d_ndarray.reshape(50000,784)
+			all_images[image_row_counter*20:(image_row_counter+1)*20] = r_2d_ndarray[311:331]
+			image_row_counter += 1
+			print 'HERE epoch 9999999999999999999999999999999999999999'
+
+	### END JDY CODE BLOCK IMAGES
+
+	create_images(all_images, image_row_counter, 20)
+
+
+
 	    
 	        
 	end_time = time.time()
