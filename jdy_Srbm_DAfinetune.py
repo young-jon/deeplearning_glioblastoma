@@ -50,16 +50,18 @@ def preprocess_pretrain_params(object_params):
 
 	return weights, biases
 
-def run_Srbm_DAfinetune(pretraining_epochs=5, training_epochs=10, 
+def run_Srbm_DAfinetune(pretraining_epochs=1, training_epochs=1, 
 						hidden_layers_sizes=[1000, 500, 250, 30],
 						finetune_lr=0.1, pretrain_lr=0.1, 
 						k=1, batch_size=10, 
-						dataset='/Users/jdy10/Data/mnist/mnist.pkl.gz'):
+						dataset='/Users/jon/Data/mnist/mnist.pkl.gz'):
 
 	datasets = load_data(dataset)
 	train_set_x, train_set_y = datasets[0]
 	valid_set_x, valid_set_y = datasets[1]
 	test_set_x, test_set_y = datasets[2]
+
+	n_ins = train_set_x.get_value(borrow=True).shape[1]
 
 	# compute number of minibatches for training, validation and testing
 	n_train_batches = train_set_x.get_value(borrow=True).shape[0] / batch_size
@@ -75,8 +77,12 @@ def run_Srbm_DAfinetune(pretraining_epochs=5, training_epochs=10,
 
 	print '... building the Stacked RBMs model'
 	# construct the Stacked RBMs
-	srbm = SRBM(numpy_rng=numpy_rng, n_ins=784, 
+	srbm = SRBM(numpy_rng=numpy_rng, n_ins=n_ins, 
 				hidden_layers_sizes=hidden_layers_sizes, n_outs=10)
+			### calculate n_ins from train_set_x so isn't hard coded in SRBM 
+			### params or pass it in at run_Srbm_DAfinetune. Also can get rid of 
+			### n_outs=10. this is only used for supervised learning. for 
+			### supervised learning just use DLT's neural network implementation
 
 	### jdy code block
 	print srbm.params
@@ -163,7 +169,7 @@ def run_Srbm_DAfinetune(pretraining_epochs=5, training_epochs=10,
 
 	print '... building the Deep Autoencoder model'
 	# construct the Deep Autoencoder 
-	dafinetune = DAfinetune(numpy_rng=numpy_rng, n_ins=784, 
+	dafinetune = DAfinetune(numpy_rng=numpy_rng, n_ins=n_ins, 
 				weights=weights, biases=biases, 
 				hidden_layers_sizes=hidden_layers_sizes)
 

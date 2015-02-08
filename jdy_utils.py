@@ -337,6 +337,66 @@ def tile_raster_images(X, img_shape, tile_shape, tile_spacing=(0, 0),
                         ] = this_img * c
         return out_array
 
+def get_reconstructions(obj, data, batch_size, n_samples=None, reconst_len=None):
+    '''calls build_reconstruction_function on any object passed in. Thus, object
+    passed in must have a build_reconstruction_function. reshapes and returns 2d
+    array.
+
+    For MNIST train_set_x, creates a list (r) of 5000 numpy.ndarrays. Each of 
+    these 5000 arrays is a 10 x 784 array with each row representing a 784-D 
+    reconstruction. r is then reshaped and a 2d array is returned with each 
+    reconstruction as a row. for MNIST train set, returned array would be 
+    50,000 X 784.
+
+    obj = an object with a build_reconstruction_function function
+    data = input to create reconstructions from
+    n_samples = number of samples of data passed in
+    reconst_len = number of elements in each reconstructions
+
+    ### characteristics of r before reshaping
+    print type(r)       #list
+    print type(r[2])    #numpy.ndarray
+    print r[2].shape    #10,784
+    print r[2].size     #7840
+    print len(r)        #5000
+    print r[2][2][0:20]       #[  9.64138480e-01   4.62259240e-01   7.82546112e-01   4.05068000e-01
+                              #   5.82822154e-01   6.93803155e-01   8.82764377e-01   8.89362245e-01...
+    print r[200][8][0:20]
+    print len(r[2][2])  #784
+    print type(r[2][2]) #numpy.ndarray'''
+
+    if not n_samples:
+        n_samples = data.get_value(borrow=True).shape[0]
+    if not reconst_len:
+        reconst_len = data.get_value(borrow=True).shape[1]
+
+    n_batches = n_samples / batch_size
+    reconstruction_fn = obj.build_reconstruction_function(data=data,
+                                                    batch_size=batch_size)
+
+    r=[]  #to store reconstructions
+    for batch_index in xrange(n_batches):
+        reconstructions = reconstruction_fn(index=batch_index)
+        r.append(reconstructions)
+
+    ### reshape r
+    r_3d_ndarray = numpy.asarray(r)
+    r_2d_ndarray = r_3d_ndarray.reshape(n_samples, reconst_len)
+
+    assert len(r_2d_ndarray[0]) == reconst_len, 'get_reconstructions: wrong len'
+
+    return r_2d_ndarray
+
+# def add_reconstructions(r, n_samples, reconst_len, image_row_counter, n_columns, all_images):
+
+    
+#     r_3d_ndarray = numpy.asarray(r)
+#     r_2d_ndarray = r_3d_ndarray.reshape(n_samples, reconst_len)
+#     all_images[image_row_counter*n_columns:(image_row_counter+1)*n_columns] = r_2d_ndarray[311:331]
+#     print 'image_row_counter = ', image_row_counter
+
+#     return all_images, image_row_counter
+
 
 
 

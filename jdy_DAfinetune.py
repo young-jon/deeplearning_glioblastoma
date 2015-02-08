@@ -108,7 +108,7 @@ class DAfinetune(object):
             #layers
             if weights:
                 if i <= (self.n_layers - 1): 
-                    W = weights[i].get_value()
+                    W = weights[i].get_value()  ### use borrow=True? prob ok
                 else:
                     W = weights[i].get_value().T
             if biases:
@@ -294,6 +294,7 @@ class DAfinetune(object):
     def build_reconstruction_function(self, data, batch_size):
         '''Added on 2/5/14. creates reconstruction of input according to model 
         of DAfinetune object.'''
+        #does this function really need batch_size? can't I just create a function using self.x as input and no givens
 
         index = T.lscalar('index')
 
