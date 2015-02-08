@@ -121,18 +121,9 @@ def run_Srbm_DAfinetune(pretraining_epochs=1, training_epochs=5,
 	r_2d = get_reconstructions(obj=pretrain_unrolled, data=image_dataset, 
 								batch_size=batch_size, n_samples=n_samples, 
 								reconst_len=reconst_len)
-
-	# reconstruction_fn = pretrain_unrolled.build_reconstruction_function(
-	# 												data=train_set_x,
-	# 												batch_size=batch_size)
-	# r=[]  #to store reconstructions
-	# for batch_index in xrange(n_train_batches):
-	# 	reconstructions = reconstruction_fn(index=batch_index)
-	# 	r.append(reconstructions)
 	print '******************************************************************'
 
 	all_images[1*n_columns:2*n_columns] = r_2d[311:331]
-
 	###END TODO JDY CODE BLOCK
 
 
@@ -231,18 +222,10 @@ def run_Srbm_DAfinetune(pretraining_epochs=1, training_epochs=5,
 	###TODO: AFTER PRETRAINING: create reconstructions and add to all_images.
 	###The weights passed to DAfinetune here are the weights immediately after pretraining
 
-	reconstruction_fn = dafinetune.build_reconstruction_function(
-												data=train_set_x,
-												batch_size=batch_size)
-	r=[]  #to store reconstructions
-	for batch_index in xrange(n_train_batches):
-		reconstructions = reconstruction_fn(index=batch_index)
-		r.append(reconstructions)
-
-	r_3d_ndarray = numpy.asarray(r)
-	r_2d_ndarray = r_3d_ndarray.reshape(50000,784)
-	all_images[40:60] = r_2d_ndarray[311:331]
-	print 'HERE epoch 1asdfasdf'
+	r_2d = get_reconstructions(obj=dafinetune, data=image_dataset, 
+								batch_size=batch_size, n_samples=n_samples, 
+								reconst_len=reconst_len)
+	all_images[2*n_columns:3*n_columns] = r_2d[311:331]
 
 	###END JDY CODE BLOCK
 
@@ -303,21 +286,29 @@ def run_Srbm_DAfinetune(pretraining_epochs=1, training_epochs=5,
 		### append reconstructions using parameters from after 'epoch'
 	    
 	    if epoch in image_finetune_epochs:
-	    	#get_reconstructions(dafinetune, train_set_x, batch_size)
-	    	###add_reconstructions(data, batch_size,)
-			reconstruction_fn = dafinetune.build_reconstruction_function(
-												data=train_set_x,
-												batch_size=batch_size)
-			r=[]  #to store reconstructions
-			for batch_index in xrange(n_train_batches):
-				reconstructions = reconstruction_fn(index=batch_index)
-				r.append(reconstructions)
 
-			r_3d_ndarray = numpy.asarray(r)
-			r_2d_ndarray = r_3d_ndarray.reshape(50000,784)
-			all_images[image_row_counter*n_columns:(image_row_counter+1)*n_columns] = r_2d_ndarray[311:331]
-			image_row_counter += 1
-			print 'HERE epoch 9999999999999999999999999999999999999999'
+	    	r_2d = get_reconstructions(obj=dafinetune, data=image_dataset, 
+								batch_size=batch_size, n_samples=n_samples, 
+								reconst_len=reconst_len)
+
+	    	all_images[image_row_counter*n_columns:(image_row_counter+1)*n_columns] = r_2d[311:331]
+	    	image_row_counter += 1
+	    	print 'HERE epoch 9999999999999999999999999999999999999999'
+
+			
+			# reconstruction_fn = dafinetune.build_reconstruction_function(
+			# 									data=train_set_x,
+			# 									batch_size=batch_size)
+			# r=[]  #to store reconstructions
+			# for batch_index in xrange(n_train_batches):
+			# 	reconstructions = reconstruction_fn(index=batch_index)
+			# 	r.append(reconstructions)
+
+			# r_3d_ndarray = numpy.asarray(r)
+			# r_2d_ndarray = r_3d_ndarray.reshape(50000,784)
+			# all_images[image_row_counter*n_columns:(image_row_counter+1)*n_columns] = r_2d_ndarray[311:331]
+			# image_row_counter += 1
+			
 
 	### END JDY CODE BLOCK IMAGES
 
