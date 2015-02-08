@@ -340,7 +340,7 @@ def tile_raster_images(X, img_shape, tile_shape, tile_spacing=(0, 0),
 def get_reconstructions(obj, data, batch_size, n_samples=None, reconst_len=None):
     '''calls build_reconstruction_function on any object passed in. Thus, object
     passed in must have a build_reconstruction_function. reshapes and returns 2d
-    array.
+    array. If change version, needs to match up with .build_reconstruction_fn.
 
     For MNIST train_set_x, creates a list (r) of 5000 numpy.ndarrays. Each of 
     these 5000 arrays is a 10 x 784 array with each row representing a 784-D 
@@ -371,31 +371,32 @@ def get_reconstructions(obj, data, batch_size, n_samples=None, reconst_len=None)
         reconst_len = data.get_value(borrow=True).shape[1]
 
     n_batches = n_samples / batch_size
-    reconstruction_fn = obj.build_reconstruction_function(data=data,
-                                                    batch_size=batch_size)
 
-    r=[]  #to store reconstructions
-    for batch_index in xrange(n_batches):
-        reconstructions = reconstruction_fn(index=batch_index)
-        r.append(reconstructions)
+    reconstruction_fn = obj.build_reconstruction_function(data=data, batch_size=batch_size)
+
+    ### new versions
+    #reconstructions = reconstruction_fn(data.get_value(borrow=True)) ### version 2 works
+    reconstructions = reconstruction_fn() ### version 3 works
+
+    assert len(reconstructions[0]) == reconst_len, 'get_reconstructions: wrong len'
+    return reconstructions
+
+
+    ### old version -- works
+    # r=[]  #to store reconstructions
+    # for batch_index in xrange(n_batches):
+    #     reconstructions = reconstruction_fn(index=batch_index)
+    #     r.append(reconstructions)
 
     ### reshape r
-    r_3d_ndarray = numpy.asarray(r)
-    r_2d_ndarray = r_3d_ndarray.reshape(n_samples, reconst_len)
+    # r_3d_ndarray = numpy.asarray(r)
+    # r_2d_ndarray = r_3d_ndarray.reshape(n_samples, reconst_len)
 
-    assert len(r_2d_ndarray[0]) == reconst_len, 'get_reconstructions: wrong len'
+    # assert len(r_2d_ndarray[0]) == reconst_len, 'get_reconstructions: wrong len'
 
-    return r_2d_ndarray
+    # return r_2d_ndarray
 
-# def add_reconstructions(r, n_samples, reconst_len, image_row_counter, n_columns, all_images):
 
-    
-#     r_3d_ndarray = numpy.asarray(r)
-#     r_2d_ndarray = r_3d_ndarray.reshape(n_samples, reconst_len)
-#     all_images[image_row_counter*n_columns:(image_row_counter+1)*n_columns] = r_2d_ndarray[311:331]
-#     print 'image_row_counter = ', image_row_counter
-
-#     return all_images, image_row_counter
 
 
 

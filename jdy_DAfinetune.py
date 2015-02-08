@@ -293,24 +293,33 @@ class DAfinetune(object):
 
     def build_reconstruction_function(self, data, batch_size):
         '''Added on 2/5/14. creates reconstruction of input according to model 
-        of DAfinetune object.'''
-        #does this function really need batch_size? can't I just create a function using self.x as input and no givens
+        of DAfinetune object. Need to match up correct version with get_reconstructions'''
+        #does this function really need batch_size? can't I just create a function using self.x as input and no givens? yes
 
         index = T.lscalar('index')
 
-        # begining of a batch, given `index`
-        batch_begin = index * batch_size
-        # ending of a batch given `index`
-        batch_end = batch_begin + batch_size
-
+        ### new versions
         xhat = self.reconstructionLayer.output
-
-        # compile theano function
-        reconstruction_fn = theano.function(inputs=[index],
-                             outputs=xhat,
-                             givens={self.x: data[batch_begin:batch_end]})
-
+        #reconstruction_fn = theano.function(inputs=[self.x], outputs=xhat) #version 2 works
+        reconstruction_fn = theano.function(inputs=[], outputs=xhat, givens={self.x: data}) #version 3 works
+        
         return reconstruction_fn
+
+
+        ### old version
+        # # begining of a batch, given `index`
+        # batch_begin = index * batch_size
+        # # ending of a batch given `index`
+        # batch_end = batch_begin + batch_size
+
+        # xhat = self.reconstructionLayer.output
+
+        # # compile theano function
+        # reconstruction_fn = theano.function(inputs=[index],
+        #                      outputs=xhat,
+        #                      givens={self.x: data[batch_begin:batch_end]})
+
+        # return reconstruction_fn
 
 
 
