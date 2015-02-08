@@ -291,10 +291,10 @@ class DAfinetune(object):
 
         return train_fn, test_fn
 
-    def build_reconstruction_function(self, data, batch_size):
+    def build_reconstruction_function(self, data):
         '''Added on 2/5/14. creates reconstruction of input according to model 
-        of DAfinetune object. Need to match up correct version with get_reconstructions'''
-        #does this function really need batch_size? can't I just create a function using self.x as input and no givens? yes
+        of DAfinetune object. Need to match up correct version with 
+        get_reconstructions. if use old version need to pass in batch_size.'''
 
         index = T.lscalar('index')
 

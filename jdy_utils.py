@@ -337,10 +337,12 @@ def tile_raster_images(X, img_shape, tile_shape, tile_spacing=(0, 0),
                         ] = this_img * c
         return out_array
 
-def get_reconstructions(obj, data, batch_size, n_samples=None, reconst_len=None):
+def get_reconstructions(obj, data):
     '''calls build_reconstruction_function on any object passed in. Thus, object
     passed in must have a build_reconstruction_function. reshapes and returns 2d
     array. If change version, needs to match up with .build_reconstruction_fn.
+    If use old version need to pass in batch_size and update call to 
+    build_reconstruction_fn.
 
     For MNIST train_set_x, creates a list (r) of 5000 numpy.ndarrays. Each of 
     these 5000 arrays is a 10 x 784 array with each row representing a 784-D 
@@ -350,8 +352,11 @@ def get_reconstructions(obj, data, batch_size, n_samples=None, reconst_len=None)
 
     obj = an object with a build_reconstruction_function function
     data = input to create reconstructions from
-    n_samples = number of samples of data passed in
-    reconst_len = number of elements in each reconstructions
+
+    ### params below required for old version
+    batch_size = batch_size
+    n_samples = number of samples of data passed in. for reshaping
+    reconst_len = number of elements in each reconstructions. reshaping
 
     ### characteristics of r before reshaping
     print type(r)       #list
@@ -365,24 +370,26 @@ def get_reconstructions(obj, data, batch_size, n_samples=None, reconst_len=None)
     print len(r[2][2])  #784
     print type(r[2][2]) #numpy.ndarray'''
 
-    if not n_samples:
-        n_samples = data.get_value(borrow=True).shape[0]
-    if not reconst_len:
-        reconst_len = data.get_value(borrow=True).shape[1]
-
-    n_batches = n_samples / batch_size
-
-    reconstruction_fn = obj.build_reconstruction_function(data=data, batch_size=batch_size)
-
     ### new versions
+    reconstruction_fn = obj.build_reconstruction_function(data=data)
+
     #reconstructions = reconstruction_fn(data.get_value(borrow=True)) ### version 2 works
     reconstructions = reconstruction_fn() ### version 3 works
 
-    assert len(reconstructions[0]) == reconst_len, 'get_reconstructions: wrong len'
+    assert len(reconstructions[0]) == data.get_value(borrow=True).shape[1], 'get_reconstructions: wrong len'
+
     return reconstructions
 
 
     ### old version -- works
+    # if not n_samples:
+    #     n_samples = data.get_value(borrow=True).shape[0]
+    # if not reconst_len:
+    #     reconst_len = data.get_value(borrow=True).shape[1]
+    # n_batches = n_samples / batch_size
+
+    # reconstruction_fn = obj.build_reconstruction_function(data=data, batch_size=batch_size)
+
     # r=[]  #to store reconstructions
     # for batch_index in xrange(n_batches):
     #     reconstructions = reconstruction_fn(index=batch_index)
@@ -395,6 +402,11 @@ def get_reconstructions(obj, data, batch_size, n_samples=None, reconst_len=None)
     # assert len(r_2d_ndarray[0]) == reconst_len, 'get_reconstructions: wrong len'
 
     # return r_2d_ndarray
+
+    ###old version call to get_reconstructions
+    # r_2d = get_reconstructions(obj=pretrain_unrolled, data=image_dataset, 
+    #                             batch_size=batch_size, n_samples=n_samples, 
+    #                             reconst_len=reconst_len)
 
 
 

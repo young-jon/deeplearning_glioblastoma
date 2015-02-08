@@ -89,23 +89,20 @@ def run_Srbm_DAfinetune(pretraining_epochs=1, training_epochs=5,
 			### supervised learning just use DLT's neural network implementation
 
 
-
-
-
 	###IMAGES  START JDY CODE BLOCK
 	###it is hard-coded for for all images to have row1=input data, 
 	###row2=random initialization, and row3=after pretraining is complete.
 
 	### Setup Images Environment
 	image_dataset = train_set_x
-	n_samples = image_dataset.get_value(borrow=True).shape[0] 
-	reconst_len = n_ins   #true for unsupervised learning
+	# n_samples = image_dataset.get_value(borrow=True).shape[0] #Don't need
+	# reconst_len = n_ins   #true for unsupervised learning
 	n_columns = 20
-	total_num_images = (len(image_finetune_epochs)+3) * n_columns
+	total_num_images = (len(image_finetune_epochs)+3) * n_columns #rows*col.
 
 	### create all_images to store final input data and reconstructions to be 
 	### displayed as a tiled image once the algorithm completes
-	all_images=numpy.zeros((total_num_images, reconst_len))
+	all_images=numpy.zeros((total_num_images, n_ins)) #true for unsuper learning
 	all_images[0:n_columns] = image_dataset.get_value()[311:331] 
 	###change to borrow=True? prob okay since I am never changing this shared 
 	###variable by side effect
@@ -118,15 +115,10 @@ def run_Srbm_DAfinetune(pretraining_epochs=1, training_epochs=5,
 								weights=weights, biases=biases, 
 								hidden_layers_sizes=hidden_layers_sizes)
 
-	r_2d = get_reconstructions(obj=pretrain_unrolled, data=image_dataset, 
-								batch_size=batch_size, n_samples=n_samples, 
-								reconst_len=reconst_len)
-	print '******************************************************************'
+	r_2d = get_reconstructions(obj=pretrain_unrolled, data=image_dataset)
 
 	all_images[1*n_columns:2*n_columns] = r_2d[311:331]
-	###END TODO JDY CODE BLOCK
-
-
+	###END IMAGES JDY CODE BLOCK
 
 
 	### jdy code block
@@ -146,16 +138,8 @@ def run_Srbm_DAfinetune(pretraining_epochs=1, training_epochs=5,
 	print srbm.rbm_params[3].get_value()[0:3, 0:3], srbm.rbm_params[4].get_value()[0], srbm.rbm_params[5].get_value()[0]
 	print 'layer2'
 	print srbm.rbm_params[6].get_value()[0:3, 0:3], srbm.rbm_params[7].get_value()[0], srbm.rbm_params[8].get_value()[0]
-
-	# print ''
-
-	# print srbm.rbm_params[9].get_value().T
-	# print srbm.rbm_params[9].get_value().shape
-	# print srbm.rbm_params[9].get_value().T.shape
-	# print srbm.rbm_params[0].get_value().shape
-	# print srbm.rbm_params[0].get_value().T.shape
-
 	###
+
 
 	print '... getting the pretraining functions'
 	### creates a list of pretraining fxns for each layer in the SRBM. This is
@@ -222,14 +206,10 @@ def run_Srbm_DAfinetune(pretraining_epochs=1, training_epochs=5,
 	###TODO: AFTER PRETRAINING: create reconstructions and add to all_images.
 	###The weights passed to DAfinetune here are the weights immediately after pretraining
 
-	r_2d = get_reconstructions(obj=dafinetune, data=image_dataset, 
-								batch_size=batch_size, n_samples=n_samples, 
-								reconst_len=reconst_len)
+	r_2d = get_reconstructions(obj=dafinetune, data=image_dataset)
 	all_images[2*n_columns:3*n_columns] = r_2d[311:331]
 
 	###END JDY CODE BLOCK
-
-
 
 
 	### jdy code block
@@ -287,37 +267,15 @@ def run_Srbm_DAfinetune(pretraining_epochs=1, training_epochs=5,
 	    
 	    if epoch in image_finetune_epochs:
 
-	    	r_2d = get_reconstructions(obj=dafinetune, data=image_dataset, 
-								batch_size=batch_size, n_samples=n_samples, 
-								reconst_len=reconst_len)
+	    	r_2d = get_reconstructions(obj=dafinetune, data=image_dataset)
 
 	    	all_images[image_row_counter*n_columns:(image_row_counter+1)*n_columns] = r_2d[311:331]
 	    	image_row_counter += 1
-	    	print 'HERE epoch 9999999999999999999999999999999999999999'
-
-			
-			# reconstruction_fn = dafinetune.build_reconstruction_function(
-			# 									data=train_set_x,
-			# 									batch_size=batch_size)
-			# r=[]  #to store reconstructions
-			# for batch_index in xrange(n_train_batches):
-			# 	reconstructions = reconstruction_fn(index=batch_index)
-			# 	r.append(reconstructions)
-
-			# r_3d_ndarray = numpy.asarray(r)
-			# r_2d_ndarray = r_3d_ndarray.reshape(50000,784)
-			# all_images[image_row_counter*n_columns:(image_row_counter+1)*n_columns] = r_2d_ndarray[311:331]
-			# image_row_counter += 1
-			
-
-	### END JDY CODE BLOCK IMAGES
 
 	create_images(all_images, image_row_counter, n_columns)
+	### END JDY CODE BLOCK IMAGES
 
 
-
-	    
-	        
 	end_time = time.time()
 	print >> sys.stderr, ('The fine tuning code for file ' +
 	                      os.path.split(__file__)[1] +
