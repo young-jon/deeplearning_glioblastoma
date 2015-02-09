@@ -32,6 +32,18 @@ def test_jdy_A():
 
 
 def test_Srbm_DAfinetune(module, obj):
+	'''all tests should evaluate to true (on home mac) if the params below
+	are use to initiate run_Srbm_DAfinetune. will need to update values in this
+	function if want to use on work mac.
+
+	pretraining_epochs=1, training_epochs=5, 
+	hidden_layers_sizes=[1000, 500, 250, 30], 
+	finetune_lr=0.1, pretrain_lr=0.1, 
+	k=1, batch_size=10, 
+	dataset='/Users/jon/Data/mnist/mnist.pkl.gz'
+
+	### need to make sure this randomstate is used:
+	numpy_rng = numpy.random.RandomState(123)'''
 	if module == 1:
 		###TESTING1 GOOD
 		a=numpy.array([[ 0.09879994, -0.03318569,  0.08856042],
