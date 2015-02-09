@@ -52,12 +52,12 @@ def preprocess_pretrain_params(object_params):
 
 	return weights, biases
 
-def run_Srbm_DAfinetune(pretraining_epochs=1, training_epochs=5, 
+def run_Srbm_DAfinetune(pretraining_epochs=5, training_epochs=15, 
 						hidden_layers_sizes=[1000, 500, 250, 30],
-						finetune_lr=0.1, pretrain_lr=0.1, 
+						finetune_lr=0.08, pretrain_lr=0.08, 
 						k=1, batch_size=10, 
 						dataset='/Users/jdy10/Data/mnist/mnist.pkl.gz',
-						image_finetune_epochs=[0,2,4], image_input='test',
+						image_finetune_epochs=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14], image_input='test',
 						computer='work'):
 
 	'''
@@ -269,7 +269,6 @@ def run_Srbm_DAfinetune(pretraining_epochs=1, training_epochs=5,
 
 	# for each epoch
 	for epoch in xrange(training_epochs):
-
 	    c = []  #list to collect costs
 	    e = []  #list to collect train errors
 	    # TRAIN SET COST: for each batch, append the cost for that batch (should 

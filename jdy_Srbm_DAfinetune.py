@@ -9,6 +9,7 @@ import numpy
 from jdy_Srbm import SRBM
 from jdy_DAfinetune import DAfinetune
 from jdy_utils import load_data, save_short, save_med_pkl, save_med_npy
+from jdy_test import test_Srbm_DAfinetune
 
 
 def preprocess_pretrain_params(object_params):
@@ -50,11 +51,12 @@ def preprocess_pretrain_params(object_params):
 
 	return weights, biases
 
-def run_Srbm_DAfinetune(pretraining_epochs=1, training_epochs=1, 
+def run_Srbm_DAfinetune(pretraining_epochs=1, training_epochs=5, 
 						hidden_layers_sizes=[1000, 500, 250, 30],
 						finetune_lr=0.1, pretrain_lr=0.1, 
 						k=1, batch_size=10, 
-						dataset='/Users/jon/Data/mnist/mnist.pkl.gz'):
+						dataset='/Users/jdy10/Data/mnist/mnist.pkl.gz',
+						computer='work'):
 
 	datasets = load_data(dataset)
 	train_set_x, train_set_y = datasets[0]
@@ -84,6 +86,9 @@ def run_Srbm_DAfinetune(pretraining_epochs=1, training_epochs=1,
 			### n_outs=10. this is only used for supervised learning. for 
 			### supervised learning just use DLT's neural network implementation
 
+	### TESTING 1
+	test_Srbm_DAfinetune(1, srbm, computer)
+
 	### jdy code block
 	print srbm.params
 	print 'layer0'
@@ -101,16 +106,8 @@ def run_Srbm_DAfinetune(pretraining_epochs=1, training_epochs=1,
 	print srbm.rbm_params[3].get_value()[0:3, 0:3], srbm.rbm_params[4].get_value()[0], srbm.rbm_params[5].get_value()[0]
 	print 'layer2'
 	print srbm.rbm_params[6].get_value()[0:3, 0:3], srbm.rbm_params[7].get_value()[0], srbm.rbm_params[8].get_value()[0]
-
-	# print ''
-
-	# print srbm.rbm_params[9].get_value().T
-	# print srbm.rbm_params[9].get_value().shape
-	# print srbm.rbm_params[9].get_value().T.shape
-	# print srbm.rbm_params[0].get_value().shape
-	# print srbm.rbm_params[0].get_value().T.shape
-
 	###
+
 
 	print '... getting the pretraining functions'
 	### creates a list of pretraining fxns for each layer in the SRBM. This is
@@ -119,6 +116,8 @@ def run_Srbm_DAfinetune(pretraining_epochs=1, training_epochs=1,
 	pretraining_fns = srbm.pretraining_functions(train_set_x=train_set_x,
 	                                            batch_size=batch_size,
 	                                            k=k)
+
+	testing = []  ###for testing
 
 	print '... pre-training the model'
 	start_time = time.time()
@@ -135,10 +134,17 @@ def run_Srbm_DAfinetune(pretraining_epochs=1, training_epochs=1,
 	        print 'Pre-training layer %i, epoch %d, cost ' % (i, epoch),
 	        print numpy.mean(c)
 
+	        testing.append(numpy.round(numpy.mean(c),9)) ###for testing
+
+
 	end_time = time.time()
 	print >> sys.stderr, ('The pretraining code for file ' +
 	                      os.path.split(__file__)[1] +
 	                      ' ran for %.2fm' % ((end_time - start_time) / 60.))
+
+	###TESTING 2 
+	test_Srbm_DAfinetune(2, srbm, computer, testing)
+
 
 	### jdy code block
 	print srbm.params
@@ -173,6 +179,8 @@ def run_Srbm_DAfinetune(pretraining_epochs=1, training_epochs=1,
 				weights=weights, biases=biases, 
 				hidden_layers_sizes=hidden_layers_sizes)
 
+	###TESTING 3
+	test_Srbm_DAfinetune(3, dafinetune, computer)
 
 	### jdy code block
 	print dafinetune.params
@@ -196,6 +204,8 @@ def run_Srbm_DAfinetune(pretraining_epochs=1, training_epochs=1,
 	print '... finetuning the model'
 	start_time = time.time() 
 
+	testing2 = [] ###for testing
+
 	# for each epoch
 	for epoch in xrange(training_epochs):
 	    c = []  #list to collect costs
@@ -215,28 +225,21 @@ def run_Srbm_DAfinetune(pretraining_epochs=1, training_epochs=1,
 
 	    # print results to screen
 	    print ('Training epoch %d, Train cost %0.3f, Train MSE %0.3f, Test '
-	        'MSE %0.3f' % (epoch, numpy.mean(c), numpy.mean(e), numpy.mean(te)))       
-	    
+	        'MSE %0.3f' % (epoch, numpy.mean(c), numpy.mean(e), numpy.mean(te)))
+
+	    ###for testing
+	    testing2.append(numpy.round(numpy.mean(c),3))
+	    testing2.append(numpy.round(numpy.mean(te),3))
+	
+
+	###TESTING 4
+	test_Srbm_DAfinetune(4, None, computer, testing2)       
 	        
 	end_time = time.time()
 	print >> sys.stderr, ('The fine tuning code for file ' +
 	                      os.path.split(__file__)[1] +
 	                      ' ran for %.2fm' % ((end_time - start_time)
 	                                          / 60.))
-
-
-# def test_Srbm_DAfinetune():
-# 	'''this test should give the output in evernote 'research2' 2/4/15. 
-# 	this function does not currently work. need to write code to print True if 
-# 	final state of the model (e.g. Test MSE == 9.077). would be nice to test a
-# 	sampling of intermediate weights and errors as well...'''
-# 	srbm = run_Srbm_DAfinetune(pretraining_epochs=5, training_epochs=5, 
-# 						hidden_layers_sizes=[1000, 500, 250, 30],
-# 						finetune_lr=0.1, pretrain_lr=0.1, 
-# 						k=1, batch_size=10, 
-# 						dataset='/Users/jdy10/Data/mnist/mnist.pkl.gz'):
-# 	### need to make sure this randomstate is used:
-# 	numpy_rng = numpy.random.RandomState(123)
 
 
 if __name__ == '__main__':
