@@ -57,9 +57,15 @@ def run_Srbm_DAfinetune(pretraining_epochs=1, training_epochs=5,
 						finetune_lr=0.1, pretrain_lr=0.1, 
 						k=1, batch_size=10, 
 						dataset='/Users/jon/Data/mnist/mnist.pkl.gz',
-						image_finetune_epochs=[0,2,4]):
+						image_finetune_epochs=[0,1,2,3,4], image_input='test'):
 
-	'''image_finetune_epochs = finetune epochs after which we create an image'''
+	'''
+	image_finetune_epochs = finetune epochs after which we create an image. 
+			Remember indexing starts at 0 in python, so epoch 0 is the first
+			epoch.
+	image_input: the dataset you want to use as input for the image 
+			reconstructions. Options are 'train', 'valid', 'test'. 
+	'''
 
 	datasets = load_data(dataset)
 	train_set_x, train_set_y = datasets[0]
@@ -94,7 +100,18 @@ def run_Srbm_DAfinetune(pretraining_epochs=1, training_epochs=5,
 	###row2=random initialization, and row3=after pretraining is complete.
 
 	### Setup Images Environment
-	image_dataset = test_set_x
+	assert image_input in ['test','train','valid'], 'image_input not understood'
+	if image_input == 'train':
+		image_dataset = train_set_x
+	elif image_input == 'test':
+		image_dataset = test_set_x
+	elif image_input == 'valid':
+		image_dataset = valid_set_x
+
+	assert max(image_finetune_epochs) < training_epochs, ('Not training for ' 
+		'enough epochs for desired image_finetune_epochs. You need to change ' 
+		'training_epochs or image_finetune_epochs.')
+
 	n_columns = 20
 	total_num_images = (len(image_finetune_epochs)+3) * n_columns #rows*col.
 
@@ -104,7 +121,6 @@ def run_Srbm_DAfinetune(pretraining_epochs=1, training_epochs=5,
 	all_images[0:n_columns] = image_dataset.get_value()[311:331] 
 	###change to borrow=True? prob okay since I am never changing this shared 
 	###variable by side effect
-	#image_row_counter = 1  # to keep track of image rows for later indexing
 
 	### Create DAfinetune object and initial reconstructions using random 
 	### weights for images
@@ -120,7 +136,6 @@ def run_Srbm_DAfinetune(pretraining_epochs=1, training_epochs=5,
 
 	### TESTING 1
 	test_Srbm_DAfinetune(1, srbm)
-
 
 	### jdy code block
 	print srbm.params
@@ -213,18 +228,15 @@ def run_Srbm_DAfinetune(pretraining_epochs=1, training_epochs=5,
 				weights=weights, biases=biases, 
 				hidden_layers_sizes=hidden_layers_sizes)
 
-	###START JDY CODE BLOCK FOR IMAGES
-	###TODO: AFTER PRETRAINING: create reconstructions and add to all_images.
-	###The weights passed to DAfinetune here are the weights immediately after pretraining
 
+	###START JDY CODE BLOCK FOR IMAGES
+	###The weights passed to DAfinetune here are the weights immediately after pretraining
 	r_2d = get_reconstructions(obj=dafinetune, data=image_dataset)
 	all_images[2*n_columns:3*n_columns] = r_2d[311:331]
-
 	###END JDY CODE BLOCK
 
 	###TESTING 3
 	test_Srbm_DAfinetune(3, dafinetune)
-
 
 	### jdy code block
 	print dafinetune.params
@@ -253,7 +265,7 @@ def run_Srbm_DAfinetune(pretraining_epochs=1, training_epochs=5,
 	### image_row_counter.
 	image_row_counter = 3
 
-	testing2=[] ###for testing
+	testing2 = [] ###for testing
 
 	# for each epoch
 	for epoch in xrange(training_epochs):
