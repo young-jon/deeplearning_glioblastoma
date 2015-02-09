@@ -56,8 +56,9 @@ def run_Srbm_DAfinetune(pretraining_epochs=1, training_epochs=5,
 						hidden_layers_sizes=[1000, 500, 250, 30],
 						finetune_lr=0.1, pretrain_lr=0.1, 
 						k=1, batch_size=10, 
-						dataset='/Users/jon/Data/mnist/mnist.pkl.gz',
-						image_finetune_epochs=[0,1,2,3,4], image_input='test'):
+						dataset='/Users/jdy10/Data/mnist/mnist.pkl.gz',
+						image_finetune_epochs=[0,2,4], image_input='test',
+						computer='work'):
 
 	'''
 	image_finetune_epochs = finetune epochs after which we create an image. 
@@ -135,7 +136,7 @@ def run_Srbm_DAfinetune(pretraining_epochs=1, training_epochs=5,
 	###END IMAGES JDY CODE BLOCK
 
 	### TESTING 1
-	test_Srbm_DAfinetune(1, srbm)
+	test_Srbm_DAfinetune(1, srbm, computer)
 
 	### jdy code block
 	print srbm.params
@@ -191,8 +192,7 @@ def run_Srbm_DAfinetune(pretraining_epochs=1, training_epochs=5,
 	                      ' ran for %.2fm' % ((end_time - start_time) / 60.))
 
 	###TESTING 2 
-	print testing==[-90.591655313, -125.134391165, -64.546611631, -54.767537662], '9'
-	test_Srbm_DAfinetune(2, srbm)
+	test_Srbm_DAfinetune(2, srbm, computer, testing)
 
 
 	### jdy code block
@@ -236,7 +236,7 @@ def run_Srbm_DAfinetune(pretraining_epochs=1, training_epochs=5,
 	###END JDY CODE BLOCK
 
 	###TESTING 3
-	test_Srbm_DAfinetune(3, dafinetune)
+	test_Srbm_DAfinetune(3, dafinetune, computer)
 
 	### jdy code block
 	print dafinetune.params
@@ -308,7 +308,7 @@ def run_Srbm_DAfinetune(pretraining_epochs=1, training_epochs=5,
 	### END JDY CODE BLOCK IMAGES
 
 	###TESTING 4
-	print testing2==[98.679,13.718,88.491,11.641,83.629,11.187,80.685,11.094,78.680,9.939], '21' 
+	test_Srbm_DAfinetune(4, None, computer, testing2)
 
 	end_time = time.time()
 	print >> sys.stderr, ('The fine tuning code for file ' +
