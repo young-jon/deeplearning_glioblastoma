@@ -120,6 +120,60 @@ def run_Srbm_DAfinetune(pretraining_epochs=1, training_epochs=5,
 	all_images[1*n_columns:2*n_columns] = r_2d[311:331]
 	###END IMAGES JDY CODE BLOCK
 
+	### TESTING1 GOOD
+	a=numpy.array([[ 0.09879994, -0.03318569,  0.08856042],
+ 	[ 0.02100114,  0.05656936,  0.07261958],
+ 	[ 0.20698177,  0.14437415,  0.20790022]])
+ 	print (a==numpy.round(srbm.params[0].get_value()[0:3, 0:3], 8)).all(), '1'
+
+ 	b=numpy.array([[ 0.0544301,  -0.25127706,  0.22170671],
+ 	[ 0.15351117, -0.2231685,   0.1926219 ],
+ 	[-0.08054012,  0.21709459,  0.03015934]] )
+ 	print (b==numpy.round(srbm.params[2].get_value()[0:3, 0:3], 8)).all(), '2'
+ 		
+ 	c=numpy.array([[-0.20517612,  0.18863321,  0.30801029],
+ 	[ 0.14593372,  0.29862848,  0.09555362],
+ 	[-0.19470544,  0.01221362, -0.31747911]])
+ 	print (c==numpy.round(srbm.params[4].get_value()[0:3, 0:3], 8)).all(), '3'
+
+ 	print 0.0==numpy.round(srbm.params[3].get_value()[0],2), '4'
+
+ 	print (a==numpy.round(srbm.rbm_params[0].get_value()[0:3, 0:3], 8)).all(), '5'
+
+ 	print (b==numpy.round(srbm.rbm_params[3].get_value()[0:3, 0:3], 8)).all(), '6'
+
+ 	print (c==numpy.round(srbm.rbm_params[6].get_value()[0:3, 0:3], 8)).all(), '7'
+
+ 	print 0.0==numpy.round(srbm.rbm_params[1].get_value()[0],2), '8'
+ 	###END TESTING1
+
+ 	### TESTING1 BAD. ALL TESTS FAIL
+	# a=numpy.array([[ 0.09879994, -0.03318569,  0.08856043],
+ # 	[ 0.02100114,  0.05656936,  0.07261958],
+ # 	[ 0.20698177,  0.14437415,  0.20790022]])
+ # 	print (a==numpy.round(srbm.params[0].get_value()[0:3, 0:3], 8)).all(), '1'
+
+ # 	b=numpy.array([[ 0.0544301,  -0.25127706,  0.22170671],
+ # 	[ 0.15351117, -0.2131685,   0.1926219 ],
+ # 	[-0.08054012,  0.21709459,  0.03015934]] )
+ # 	print (b==numpy.round(srbm.params[2].get_value()[0:3, 0:3], 8)).all(), '2'
+ 		
+ # 	c=numpy.array([[-0.20517612,  0.18863321,  0.30801029],
+ # 	[ 0.14593372,  0.29861848,  0.09555362],
+ # 	[-0.19470544,  0.01221362, -0.31747911]])
+ # 	print (c==numpy.round(srbm.params[4].get_value()[0:3, 0:3], 8)).all(), '3'
+
+ # 	print 0.1==numpy.round(srbm.params[3].get_value()[0],2), '4'
+
+ # 	print (a==numpy.round(srbm.rbm_params[0].get_value()[0:3, 0:3], 8)).all(), '5'
+
+ # 	print (b==numpy.round(srbm.rbm_params[3].get_value()[0:3, 0:3], 8)).all(), '6'
+
+ # 	print (c==numpy.round(srbm.rbm_params[6].get_value()[0:3, 0:3], 8)).all(), '7'
+
+ # 	print 0.8==numpy.round(srbm.rbm_params[1].get_value()[0],2), '8'
+ 	###END TESTING1
+
 
 	### jdy code block
 	print srbm.params
@@ -149,6 +203,8 @@ def run_Srbm_DAfinetune(pretraining_epochs=1, training_epochs=5,
 	                                            batch_size=batch_size,
 	                                            k=k)
 
+	testing = []  ###for testing
+
 	print '... pre-training the model'
 	start_time = time.time()
 	## Pre-train layer-wise
@@ -164,10 +220,72 @@ def run_Srbm_DAfinetune(pretraining_epochs=1, training_epochs=5,
 	        print 'Pre-training layer %i, epoch %d, cost ' % (i, epoch),
 	        print numpy.mean(c)
 
+	        testing.append(numpy.round(numpy.mean(c),9)) ###for testing
+
+
 	end_time = time.time()
 	print >> sys.stderr, ('The pretraining code for file ' +
 	                      os.path.split(__file__)[1] +
 	                      ' ran for %.2fm' % ((end_time - start_time) / 60.))
+
+	###TESTING2 GOOD
+	print testing==[-90.591655313, -125.134391165, -64.546611631, -54.767537662], '9'
+
+	d=numpy.array([[ 0.00889808, -0.12697725,  0.01510663],
+ 	[-0.06354312,  0.00103337,  0.02840916],
+ 	[ 0.12320258,  0.09890467,  0.13424923]])
+ 	print (d==numpy.round(srbm.params[0].get_value()[0:3, 0:3], 8)).all(), '10'
+
+ 	e=numpy.array([[ 0.48946507, -0.32782729,  0.08150482],
+ 	[ 0.08153848, -0.18980341,  0.15371413],
+ 	[-0.18342055, -0.27116513, -0.04994315]] )
+ 	print (e==numpy.round(srbm.params[2].get_value()[0:3, 0:3], 8)).all(), '11'
+
+ 	f=numpy.array([[-0.24739512,  0.20979701,  0.1809979 ],
+ 	[ 0.04023768,  0.02864404, -0.40347024],
+ 	[-0.27282463, -0.15462937, -0.22956235]])
+ 	print (f==numpy.round(srbm.params[4].get_value()[0:3, 0:3], 8)).all(), '12'
+
+ 	print -0.507665766==numpy.round(srbm.params[3].get_value()[0],9), '13'
+
+ 	print (d==numpy.round(srbm.rbm_params[0].get_value()[0:3, 0:3], 8)).all(), '14'
+
+ 	print (e==numpy.round(srbm.rbm_params[3].get_value()[0:3, 0:3], 8)).all(), '15'
+
+ 	print (f==numpy.round(srbm.rbm_params[6].get_value()[0:3, 0:3], 8)).all(), '16'
+
+ 	print -1.078679724==numpy.round(srbm.rbm_params[5].get_value()[0],9), '17'
+ 	###END TESTING2
+
+ 	###TESTING2 BAD. ALL TESTS FAIL
+	# print testing==[-90.591555313, -125.134391165, -64.546611631, -54.767537662], '9'
+
+	# d=numpy.array([[ 0.00889808, -0.12697725,  0.01510663],
+ # 	[-0.06354312,  0.00103237,  0.02840916],
+ # 	[ 0.12320258,  0.09890467,  0.13424923]])
+ # 	print (d==numpy.round(srbm.params[0].get_value()[0:3, 0:3], 8)).all(), '10'
+
+ # 	e=numpy.array([[ 0.48946507, -0.32782729,  0.08150482],
+ # 	[ 0.08153848, -0.18980341,  0.15371412],
+ # 	[-0.18342055, -0.27116513, -0.04994315]] )
+ # 	print (e==numpy.round(srbm.params[2].get_value()[0:3, 0:3], 8)).all(), '11'
+
+ # 	f=numpy.array([[-0.24739512,  0.20979701,  0.1809979 ],
+ # 	[ 0.04023768,  0.02864404, -0.40347024],
+ # 	[-0.27282463, -0.15462937, -0.22956239]])
+ # 	print (f==numpy.round(srbm.params[4].get_value()[0:3, 0:3], 8)).all(), '12'
+
+ # 	print 0.507665766==numpy.round(srbm.params[3].get_value()[0],9), '13'
+
+ # 	print (d==numpy.round(srbm.rbm_params[0].get_value()[0:3, 0:3], 8)).all(), '14'
+
+ # 	print (e==numpy.round(srbm.rbm_params[3].get_value()[0:3, 0:3], 8)).all(), '15'
+
+ # 	print (f==numpy.round(srbm.rbm_params[6].get_value()[0:3, 0:3], 8)).all(), '16'
+
+ # 	print -1.078679704==numpy.round(srbm.params[5].get_value()[0],9), '17'
+ 	###END TESTING2
+
 
 	### jdy code block
 	print srbm.params
@@ -211,6 +329,39 @@ def run_Srbm_DAfinetune(pretraining_epochs=1, training_epochs=5,
 
 	###END JDY CODE BLOCK
 
+	###TESTING3 GOOD
+	g=numpy.array([[ 0.00889808, -0.12697725,  0.01510663],
+ 	[-0.06354312,  0.00103337,  0.02840916],
+ 	[ 0.12320258,  0.09890467,  0.13424923]])
+ 	print (g==numpy.round(dafinetune.params[0].get_value()[0:3, 0:3], 8)).all(), '18'
+
+ 	h=numpy.array([[ 0.48946507, -0.32782729,  0.08150482],
+ 	[ 0.08153848, -0.18980341,  0.15371413],
+ 	[-0.18342055, -0.27116513, -0.04994315]])
+ 	print (h==numpy.round(dafinetune.params[2].get_value()[0:3, 0:3], 8)).all(), '19'
+
+ 	j=numpy.array([[-0.24739512,  0.20979701,  0.1809979 ],
+ 	[ 0.04023768,  0.02864404, -0.40347024],
+ 	[-0.27282463, -0.15462937, -0.22956235]])
+ 	print (j==numpy.round(dafinetune.params[4].get_value()[0:3, 0:3], 8)).all(), '20'
+ 	###END TESTING3
+
+ 	###TESTING3 BAD
+	# g=numpy.array([[ 0.00889808, -0.12697725,  0.01510663],
+ # 	[-0.06354312,  0.00103337,  0.02840916],
+ # 	[ 0.19320258,  0.09890467,  0.13424923]])
+ # 	print (g==numpy.round(dafinetune.params[0].get_value()[0:3, 0:3], 8)).all(), '18'
+
+ # 	h=numpy.array([[ 0.48946506, -0.32782729,  0.08150482],
+ # 	[ 0.08153848, -0.18980341,  0.15371413],
+ # 	[-0.18342055, -0.27116513, -0.04994315]])
+ # 	print (h==numpy.round(dafinetune.params[2].get_value()[0:3, 0:3], 8)).all(), '19'
+
+ # 	j=numpy.array([[-0.24739512,  0.20979701,  0.1809979 ],
+ # 	[ 0.04023768,  0.02864404, -0.40347024],
+ # 	[-0.27282463, 0.15462937, -0.22956235]])
+ # 	print (j==numpy.round(dafinetune.params[4].get_value()[0:3, 0:3], 8)).all(), '20'
+ 	###END TESTING3
 
 	### jdy code block
 	print dafinetune.params
@@ -239,6 +390,8 @@ def run_Srbm_DAfinetune(pretraining_epochs=1, training_epochs=5,
 	### image_row_counter.
 	image_row_counter = 3
 
+	testing2=[] ###for testing
+
 	# for each epoch
 	for epoch in xrange(training_epochs):
 
@@ -260,6 +413,10 @@ def run_Srbm_DAfinetune(pretraining_epochs=1, training_epochs=5,
 	    # print results to screen
 	    print ('Training epoch %d, Train cost %0.3f, Train MSE %0.3f, Test '
 	        'MSE %0.3f' % (epoch, numpy.mean(c), numpy.mean(e), numpy.mean(te)))
+
+	    ###for testing
+	    testing2.append(numpy.round(numpy.mean(c),3))
+	    testing2.append(numpy.round(numpy.mean(te),3))
 	    
 
 	    ###START JDY CODE BLOCK IMAGES
@@ -275,6 +432,10 @@ def run_Srbm_DAfinetune(pretraining_epochs=1, training_epochs=5,
 	create_images(all_images, image_row_counter, n_columns)
 	### END JDY CODE BLOCK IMAGES
 
+	###TESTING4
+	print testing2==[98.679,13.718,88.491,11.641,83.629,11.187,80.685,11.094,78.680,9.939], '21' 
+	# print testing2==[98.679,13.718,88.491,11.641,83.629,11.187,80.685,11.084,78.680,9.939], '21' #bad
+	###END TESTING4
 
 	end_time = time.time()
 	print >> sys.stderr, ('The fine tuning code for file ' +
