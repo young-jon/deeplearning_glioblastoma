@@ -1,4 +1,10 @@
 """
+This script has been modified from the DLT mlp.py. As such it should be named
+jdy_mlp.py, but I haven't updated all of my import statements. So it is still 
+mlp.py. Changes include: adding functionality for passing in weights and biases,
+SparseHiddenLayer class.
+
+From DLT:
 This tutorial introduces the multilayer perceptron using Theano.
 
  A multilayer perceptron is a logistic regressor where
