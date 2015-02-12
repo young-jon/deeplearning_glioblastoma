@@ -321,6 +321,146 @@ class DAfinetune(object):
 
         # return reconstruction_fn
 
+class DAfinetuneSparse(DAfinetune):
+
+    def get_cost_updates_mse(self, learning_rate, sparsity_rate): 
+        """ This function computes the cost and the updates for one trainng
+        step of the Sparse DA.
+        I made this exactly like Hinton's code (2006) -- see 'CG_MNIST.m'
+        f = -1/N*sum(sum( XX(:,1:end-1).*log(XXout) + 
+            (1-XX(:,1:end-1)).*log(1-XXout)));
+        
+        From neuralnetworksanddeeplearning.com (properties of cross-entropy):
+        -Two properties in particular make it reasonable to interpret the 
+        cross-entropy as a cost function. First, it's non-negative, that is, 
+        C>0. To see this, notice that all the individual terms in the sum in 
+        (57) are positive, since: (a) both logarithms are of numbers in the 
+        range 0 to 1, and thus are negative; and (b) there is a minus sign out 
+        the front.
+
+        *Note from dA tutorial: 'The reconstruction error can be measured in 
+        many ways,depending on the appropriate distributional assumptions on the 
+        input given the code, e.g., using the traditional squared error , or if 
+        the input is interpreted as either bit vectors or vectors of bit 
+        probabilities by the reconstruction cross-entropy defined as (see L 
+        below). 
+        *Note from 'Getting Started' link: 'An image is represented as numpy 
+        1-dimensional array of 784 (28 x 28) float values between 0 and 1 
+        (0 stands for black, 1 for white). 
+        http://www.deeplearning.net/tutorial/dA.html#daa
+        http://www.deeplearning.net/tutorial/gettingstarted.html#gettingstarted
+        """
+        ###new
+        #compute activations 
+        sum_activations = T.sum(self.hidden_layers[0].output, axis=1)
+        for layer in self.hidden_layers[1:]:
+            activations = layer.output  ###size for 2nd layer = (self.x, 500)
+            sum_activations += T.sum(activations, axis=1)   ### size = vector of size of rows in self.x
+
+        # self.rho_hat = T.mean(self.output, axis=0)
+        # self.sparsity_term = T.sum((rho*T.log(rho/self.rho_hat)) + ((1-rho)*T.log((1-rho)/(1-self.rho_hat))), axis=?)
+        ###end new
+
+
+        #compute x reconstruction
+        xhat = self.reconstructionLayer.output
+        
+        # compute mean-squared error for the train set batch
+        sum_sq_errors = T.sum((self.x - xhat)**2, axis=1)
+        mse = T.mean(sum_sq_errors)
+
+        # compute cross-entropy cost
+        # note : we sum over the size of a datapoint; if we are using
+        #        minibatches, L will be a vector, with one entry per
+        #        example in minibatch
+        L = (- T.sum(self.x * T.log(xhat) + (1-self.x) * T.log(1-xhat), axis=1)) + (sparsity_rate*sum_activations)  ###last term new
+        # note : L is now a vector, where each element is the
+        #        CROSS-ENTROPY cost of the reconstruction of the
+        #        corresponding example of the minibatch. We need to
+        #        compute the average of all these to get the cost of
+        #        the minibatch
+        cost = T.mean(L)
+
+        # compute the gradients of the cost of the `DA` with respect
+        # to its parameters
+        gparams = T.grad(cost, self.params)
+        # generate the list of updates
+        updates = []
+        for param, gparam in zip(self.params, gparams):
+            updates.append((param, param - learning_rate * gparam))
+
+
+        return (cost, updates, mse)
+
+
+    def build_finetune_functions(self, train_set_x, valid_set_x, test_set_x, 
+                            batch_size): 
+        ### removed learning_rate from function parameters
+        '''Generates a function `train` that implements one step of
+        finetuning, a function `validate` that computes the error on a
+        batch from the validation set, and a function `test` that
+        computes the error on a batch from the testing set
+
+        :type datasets: list of pairs of theano.tensor.TensorType
+        :param datasets: It is a list that contain all the datasets;
+                        the has to contain three pairs, `train`,
+                        `valid`, `test` in this order, where each pair
+                        is formed of two Theano variables, one for the
+                        datapoints, the other for the labels
+        :type batch_size: int
+        :param batch_size: size of a minibatch
+        :type learning_rate: float
+        :param learning_rate: learning rate used during finetune stage
+        '''
+        ### compute number of minibatches for validation and testing
+        n_valid_batches = valid_set_x.get_value(borrow=True).shape[0]
+        n_valid_batches /= batch_size
+        n_test_batches = test_set_x.get_value(borrow=True).shape[0]
+        n_test_batches /= batch_size
+
+        index = T.lscalar('index')  # index to a [mini]batch
+        learning_rate = T.scalar('lr')
+        sparsity_rate = T.scalar('sr')  
+
+        # 'learning_rate' is the symbolic variable used by train_fn # and 
+        # .get_cost_updates_mse to create symbolic fxns. The actual value of the 
+        # learning rate isn't passed in until training_fn is called in 
+        # test_DAfinetune with the actual learning rate. this allows me to 
+        # possible change the learning rate throughout the training should I 
+        # want to in the future.
+
+        ### added
+        # begining of a batch, given `index`
+        batch_begin = index * batch_size
+        # ending of a batch given `index`
+        batch_end = batch_begin + batch_size
+        
+        # get the cost and the updates list
+        cost, updates, train_mse = self.get_cost_updates_mse(
+                                                    learning_rate=learning_rate,
+                                                    sparsity_rate=sparsity_rate)
+        
+        # compile the theano function
+        train_fn = theano.function(inputs=[index,
+                          ###theano.Param(corruption_level, default=0.2),
+                          theano.Param(learning_rate, default=0.1),
+                          theano.Param(sparsity_rate, default=0.1)],
+                             outputs=(cost, train_mse),
+                             updates=updates,
+                             givens={self.x: train_set_x[batch_begin:
+                                                         batch_end]})
+        
+        #get the mean squared error for the test set
+        test_mse = self.get_test_error()
+
+        # compile theano function
+        test_fn = theano.function(inputs=[index],
+                             outputs=test_mse,
+                             givens={self.x: test_set_x[batch_begin:
+                                                         batch_end]})
+
+        return train_fn, test_fn
+
 
 
 def test_DAfinetune(finetune_lr=0.1, training_epochs=5, 
