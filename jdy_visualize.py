@@ -81,6 +81,21 @@ def create_images(X, n_rows, n_columns):
     image.save('samples.png')
 
 
+def create_images_new(X, n_rows, n_columns):
+    image_data = numpy.zeros((54 * n_rows + 1, 54 * n_columns - 1),
+                             dtype='uint8')
+
+    for idx in xrange(n_rows):
+        image_data[54 * idx:54 * idx + 53, :] = tile_raster_images(
+                                            X=X[20*idx:20*(idx+1)],
+                                            img_shape=(53, 53),
+                                            tile_shape=(1, n_columns),
+                                            tile_spacing=(1, 1))
+
+    image = PIL.Image.fromarray(image_data)
+    image.save('samples.png')
+
+
 
 
 

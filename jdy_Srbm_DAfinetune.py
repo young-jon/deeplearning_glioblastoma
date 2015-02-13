@@ -8,7 +8,7 @@ import numpy
 
 from jdy_Srbm import SRBM
 from jdy_DAfinetune import DAfinetune
-from jdy_utils import load_data, save_short, save_med_pkl, save_med_npy
+from jdy_utils import load_data, save_short, save_med_pkl, save_med_npy, load_data_unsupervised
 from jdy_test import test_Srbm_DAfinetune
 
 
@@ -53,10 +53,24 @@ def preprocess_pretrain_params(object_params):
 
 def run_Srbm_DAfinetune(pretraining_epochs=1, training_epochs=5, 
 						hidden_layers_sizes=[1000, 500, 250, 30],
-						finetune_lr=0.1, pretrain_lr=0.1, 
+						finetune_lr=0.6, pretrain_lr=0.6, 
 						k=1, batch_size=10, 
 						dataset='/Users/jdy10/Data/mnist/mnist.pkl.gz',
 						computer='work'):
+	
+	###new
+	# datasets = load_data_unsupervised(dataset)
+	# train_set_x = datasets[0]
+	# valid_set_x = datasets[1]
+	# test_set_x = datasets[2]
+	# print type(train_set_x)
+	# print train_set_x.get_value().shape
+	# print type(test_set_x)
+	# print test_set_x.get_value().shape
+	# print type(valid_set_x)
+	# print valid_set_x.get_value().shape
+	# print train_set_x.get_value()
+	# print test_set_x.get_value()
 
 	datasets = load_data(dataset)
 	train_set_x, train_set_y = datasets[0]

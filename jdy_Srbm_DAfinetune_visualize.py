@@ -8,8 +8,8 @@ import numpy
 
 from jdy_Srbm import SRBM
 from jdy_DAfinetune import DAfinetune
-from jdy_utils import load_data, save_short, save_med_pkl, save_med_npy, get_reconstructions
-from jdy_visualize import create_images
+from jdy_utils import load_data, save_short, save_med_pkl, save_med_npy, get_reconstructions, load_data_unsupervised
+from jdy_visualize import create_images, create_images_new
 from jdy_test import test_Srbm_DAfinetune
 
 
@@ -52,12 +52,12 @@ def preprocess_pretrain_params(object_params):
 
 	return weights, biases
 
-def run_Srbm_DAfinetune(pretraining_epochs=1, training_epochs=5, 
-						hidden_layers_sizes=[1000, 500, 250, 30],
-						finetune_lr=0.1, pretrain_lr=0.1, 
-						k=1, batch_size=10, 
-						dataset='/Users/jdy10/Data/mnist/mnist.pkl.gz',
-						image_finetune_epochs=[0,2,4], image_input='test',
+def run_Srbm_DAfinetune(pretraining_epochs=100, training_epochs=500, 
+						hidden_layers_sizes=[2000, 1000, 400, 100],
+						finetune_lr=0.0025, pretrain_lr=0.03, 
+						k=1, batch_size=108, 
+						dataset='/Users/jdy10/Data/tcga/file.pkl.gz',
+						image_finetune_epochs=[0,99,199,299,399,499], image_input='test',
 						computer='work'):
 
 	'''
@@ -68,10 +68,24 @@ def run_Srbm_DAfinetune(pretraining_epochs=1, training_epochs=5,
 			reconstructions. Options are 'train', 'valid', 'test'. 
 	'''
 
-	datasets = load_data(dataset)
-	train_set_x, train_set_y = datasets[0]
-	valid_set_x, valid_set_y = datasets[1]
-	test_set_x, test_set_y = datasets[2]
+	###new
+	datasets = load_data_unsupervised(dataset)
+	train_set_x = datasets[0]
+	valid_set_x = datasets[1]
+	test_set_x = datasets[2]
+	print type(train_set_x)
+	print train_set_x.get_value().shape
+	print type(test_set_x)
+	print test_set_x.get_value().shape
+	print type(valid_set_x)
+	print valid_set_x.get_value().shape
+
+
+
+	# datasets = load_data(dataset)
+	# train_set_x, train_set_y = datasets[0]
+	# valid_set_x, valid_set_y = datasets[1]
+	# test_set_x, test_set_y = datasets[2]
 
 	n_ins = train_set_x.get_value(borrow=True).shape[1]
 
@@ -119,7 +133,11 @@ def run_Srbm_DAfinetune(pretraining_epochs=1, training_epochs=5,
 	### create all_images to store final input data and reconstructions to be 
 	### displayed as a tiled image once the algorithm completes
 	all_images=numpy.zeros((total_num_images, n_ins)) #true for unsuper learning
-	all_images[0:n_columns] = image_dataset.get_value()[311:331] 
+	# all_images[0:n_columns] = image_dataset.get_value()[311:331] 
+
+	###new
+	all_images[0:n_columns] = image_dataset.get_value()[11:31]
+
 	###change to borrow=True? prob okay since I am never changing this shared 
 	###variable by side effect
 
@@ -132,7 +150,9 @@ def run_Srbm_DAfinetune(pretraining_epochs=1, training_epochs=5,
 
 	r_2d = get_reconstructions(obj=pretrain_unrolled, data=image_dataset)
 
-	all_images[1*n_columns:2*n_columns] = r_2d[311:331]
+	# all_images[1*n_columns:2*n_columns] = r_2d[311:331]
+	###new
+	all_images[1*n_columns:2*n_columns] = r_2d[11:31]
 	###END IMAGES JDY CODE BLOCK
 
 	### TESTING 1
@@ -232,7 +252,12 @@ def run_Srbm_DAfinetune(pretraining_epochs=1, training_epochs=5,
 	###START JDY CODE BLOCK FOR IMAGES
 	###The weights passed to DAfinetune here are the weights immediately after pretraining
 	r_2d = get_reconstructions(obj=dafinetune, data=image_dataset)
-	all_images[2*n_columns:3*n_columns] = r_2d[311:331]
+
+	# all_images[2*n_columns:3*n_columns] = r_2d[311:331]
+	###new
+	all_images[2*n_columns:3*n_columns] = r_2d[11:31]
+
+
 	###END JDY CODE BLOCK
 
 	###TESTING 3
@@ -300,10 +325,14 @@ def run_Srbm_DAfinetune(pretraining_epochs=1, training_epochs=5,
 
 	    	r_2d = get_reconstructions(obj=dafinetune, data=image_dataset)
 
-	    	all_images[image_row_counter*n_columns:(image_row_counter+1)*n_columns] = r_2d[311:331]
+	    	# all_images[image_row_counter*n_columns:(image_row_counter+1)*n_columns] = r_2d[311:331]
+	    	###new
+	    	all_images[image_row_counter*n_columns:(image_row_counter+1)*n_columns] = r_2d[11:31]
 	    	image_row_counter += 1
 
-	create_images(all_images, image_row_counter, n_columns)
+	# create_images(all_images, image_row_counter, n_columns)
+	###new
+	create_images_new(all_images, image_row_counter, n_columns)
 	### END JDY CODE BLOCK IMAGES
 
 	###TESTING 4
