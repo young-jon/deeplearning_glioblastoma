@@ -58,7 +58,7 @@ def run_Srbm_DAfinetune(pretraining_epochs=1, training_epochs=5,
 						dataset='/Users/jdy10/Data/mnist/mnist.pkl.gz',
 						computer='work'):
 	
-	###new
+	###UNSUPERVISED
 	# datasets = load_data_unsupervised(dataset)
 	# train_set_x = datasets[0]
 	# valid_set_x = datasets[1]
@@ -72,6 +72,7 @@ def run_Srbm_DAfinetune(pretraining_epochs=1, training_epochs=5,
 	# print train_set_x.get_value()
 	# print test_set_x.get_value()
 
+	###SUPERVISED
 	datasets = load_data(dataset)
 	train_set_x, train_set_y = datasets[0]
 	valid_set_x, valid_set_y = datasets[1]
