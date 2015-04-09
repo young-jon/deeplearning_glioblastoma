@@ -55,8 +55,8 @@ def run_Srbm_DAfinetune(train_set_x, test_set_x,
 						pretraining_epochs=1, training_epochs=5, 
 						hidden_layers_sizes=[1000, 500, 250, 30],
 						finetune_lr=0.1, pretrain_lr=0.1, 
-						k=1, batch_size=10, 
-						computer='work'):
+						k=1, batch_size=10, computer='work', 
+						numpy_rng=numpy.random.RandomState(None)):
 	
 	###UNSUPERVISED
 	# datasets = load_data_unsupervised(dataset)
@@ -85,8 +85,8 @@ def run_Srbm_DAfinetune(train_set_x, test_set_x,
 	n_train_batches = train_set_x.get_value(borrow=True).shape[0] / batch_size
 	n_test_batches = test_set_x.get_value(borrow=True).shape[0] / batch_size
 
-	# numpy random generator
-	numpy_rng = numpy.random.RandomState(123)
+	# numpy random generator  ### now passed in
+	# numpy_rng = numpy.random.RandomState(123)
 
 
 	#########################

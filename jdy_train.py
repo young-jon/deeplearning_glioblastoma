@@ -1,3 +1,4 @@
+import numpy
 import cPickle
 import time
 import os
@@ -20,6 +21,7 @@ computer = 'work'
 data_path = '/Users/jdy10/Data/data_after_fs/data_2784.pkl'
 cv_indices_path = '/Users/jdy10/Data/cv_indices/cv_6108_6.pkl'
 k = 1  ### don't change this for now
+numpy_rng = numpy.random.RandomState(None)  ### change None to 123 for debugging
 
 '''END SETUP'''
 
@@ -30,11 +32,12 @@ f.close()
 train_set_x = shared_dataset_unsupervised(train_set[0])
 test_set_x = shared_dataset_unsupervised(test_set[0])
 srbm = run_Srbm_DAfinetune(train_set_x=train_set_x, test_set_x=test_set_x, 
-							hidden_layers_sizes=hidden_layers_sizes,
-							pretrain_lr=pretrain_lr, finetune_lr=finetune_lr,
-							pretraining_epochs=pretraining_epochs,
-							training_epochs=training_epochs, k=k, 
-							batch_size=batch_size, computer='work')
+							hidden_layers_sizes=[1000, 500, 250, 30],
+							pretrain_lr=0.1, finetune_lr=0.1,
+							pretraining_epochs=1,
+							training_epochs=5, k=1, 
+							batch_size=10, computer='work', 
+							numpy_rng=numpy.random.RandomState(123))
 
 
 
@@ -63,7 +66,8 @@ for i, (train_cv_indices, valid_cv_indices) in enumerate(cv_indices):
 								finetune_lr=finetune_lr,
 								pretraining_epochs=pretraining_epochs,
 								training_epochs=training_epochs,
-								k=k, batch_size=batch_size, computer='work')
+								k=k, batch_size=batch_size, computer='work',
+								numpy_rng=numpy_rng)
 
 	if i == 0:
 		end_time1 = time.time()
