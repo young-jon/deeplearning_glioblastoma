@@ -52,13 +52,16 @@ def preprocess_pretrain_params(object_params):
 
 	return weights, biases
 
-def run_Srbm_DAfinetune(pretraining_epochs=100, training_epochs=500, 
+def run_Srbm_DAfinetune(pretraining_epochs=1, training_epochs=5, 
 						hidden_layers_sizes=[2000, 1000, 400, 100],
 						finetune_lr=0.0025, pretrain_lr=0.03, 
 						k=1, batch_size=108, 
 						dataset='/Users/jdy10/Data/tcga/file.pkl.gz',
-						image_finetune_epochs=[0,99,199,299,399,499], image_input='test',
+						image_finetune_epochs=[4], image_input='test',
 						computer='work'):
+
+	# image_finetune_epochs=[0,99,199,299,399,499]
+
 
 	'''
 	image_finetune_epochs = finetune epochs after which we create an image. 

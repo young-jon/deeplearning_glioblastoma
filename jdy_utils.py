@@ -8,6 +8,69 @@ import theano
 import theano.tensor as T
 
 
+def shared_dataset_unsupervised(data_x, borrow=True):
+
+        """ Function that loads the dataset into shared variables
+
+        The reason we store our dataset in shared variables is to allow
+        Theano to copy it into the GPU memory (when code is run on GPU).
+        Since copying data into the GPU is slow, copying a minibatch everytime
+        is needed (the default behaviour if the data is not in a shared
+        variable) would lead to a large decrease in performance.
+        """
+        
+        shared_x = theano.shared(numpy.asarray(data_x, 
+                                dtype=theano.config.floatX),
+                                borrow=borrow)
+        return shared_x
+        
+
+
+def jdy_load_data(data_path, shared=False):
+    test_i_path = '/Users/jdy10/Data/test_train_splits/test_indices_rand.pkl'
+    train_i_path = '/Users/jdy10/Data/test_train_splits/train_indices_rand.pkl'
+
+    f = open(test_i_path, 'rb')
+    test_i_rand = cPickle.load(f)
+    f.close()
+
+    g = open(train_i_path, 'rb')
+    train_i_rand = cPickle.load(g)
+    g.close()
+
+    h = open(data_path, 'rb')
+    data = cPickle.load(h)
+    h.close()
+
+    test_set = data[test_i_rand]
+    train_set = data[train_i_rand]
+
+    def shared_dataset_unsupervised(data_x, borrow=True):
+
+        """ Function that loads the dataset into shared variables
+
+        The reason we store our dataset in shared variables is to allow
+        Theano to copy it into the GPU memory (when code is run on GPU).
+        Since copying data into the GPU is slow, copying a minibatch everytime
+        is needed (the default behaviour if the data is not in a shared
+        variable) would lead to a large decrease in performance.
+        """
+        
+        shared_x = theano.shared(numpy.asarray(data_x, 
+                                dtype=theano.config.floatX),
+                                borrow=borrow)
+        return shared_x
+
+
+    if shared:
+        test_set = shared_dataset_unsupervised(test_set)
+        train_set = shared_dataset_unsupervised(train_set)
+        return [train_set, test_set]
+    else:
+        return [train_set, test_set]
+
+
+
 def load_data(dataset):
     ''' Loads the dataset
 
@@ -77,7 +140,7 @@ def load_data(dataset):
 # datasets[0]
 
 
-def load_data_unsupervised(dataset):
+def load_data_unsupervised(dataset, splits=3):
     ''' Loads the unsupervised dataset (there are only x values for train, validation, and test sets). This function is untested.
 
     :type dataset: string
@@ -86,11 +149,18 @@ def load_data_unsupervised(dataset):
     '''
 
     # Load the dataset
+    
     f = gzip.open(dataset, 'rb')
-    train_set, valid_set, test_set = cPickle.load(f)
+    if splits == 3:
+        train_set, valid_set, test_set = cPickle.load(f)
+    elif splits == 2:
+        train_set, test_set = cPickle.load(f)
+    else:
+        print 'Error in load_data_unsupervised: Splits must equal 2 or 3'
     f.close()
     #train_set, valid_set, test_set of type: numpy.ndarray of 2 dimensions 
     #(a matrix) with each row corresponding to an example. 
+
 
     def shared_dataset_unsupervised(data_x, borrow=True):
 
@@ -103,16 +173,19 @@ def load_data_unsupervised(dataset):
         variable) would lead to a large decrease in performance.
         """
         
-        shared_x = theano.shared(numpy.asarray(data_x,
-                                               dtype=theano.config.floatX),
-                                 borrow=borrow)
+        shared_x = theano.shared(numpy.asarray(data_x, 
+                                dtype=theano.config.floatX),
+                                borrow=borrow)
         return shared_x
         
     test_set_x = shared_dataset_unsupervised(test_set)
-    valid_set_x = shared_dataset_unsupervised(valid_set)
     train_set_x = shared_dataset_unsupervised(train_set)
+    if splits == 3:
+        valid_set_x = shared_dataset_unsupervised(valid_set)
+        rval = [train_set_x, valid_set_x, test_set_x]
+    elif splits == 2:
+        rval = [train_set_x, test_set_x]
 
-    rval = [train_set_x, valid_set_x, test_set_x]
     return rval
 
 def save_short(obj, file_path):

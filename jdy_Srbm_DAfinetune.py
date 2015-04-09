@@ -51,32 +51,33 @@ def preprocess_pretrain_params(object_params):
 
 	return weights, biases
 
-def run_Srbm_DAfinetune(pretraining_epochs=1, training_epochs=5, 
+def run_Srbm_DAfinetune(train_set_x, test_set_x,
+						pretraining_epochs=1, training_epochs=5, 
 						hidden_layers_sizes=[1000, 500, 250, 30],
 						finetune_lr=0.6, pretrain_lr=0.6, 
 						k=1, batch_size=10, 
-						dataset='/Users/jdy10/Data/mnist/mnist.pkl.gz',
 						computer='work'):
 	
 	###UNSUPERVISED
 	# datasets = load_data_unsupervised(dataset)
 	# train_set_x = datasets[0]
+	# test_set_x = datasets[1]
 	# valid_set_x = datasets[1]
-	# test_set_x = datasets[2]
-	# print type(train_set_x)
-	# print train_set_x.get_value().shape
-	# print type(test_set_x)
-	# print test_set_x.get_value().shape
+	
+	print type(train_set_x)
+	print train_set_x.get_value().shape
+	print type(test_set_x)
+	print test_set_x.get_value().shape
 	# print type(valid_set_x)
 	# print valid_set_x.get_value().shape
-	# print train_set_x.get_value()
-	# print test_set_x.get_value()
+	print train_set_x.get_value()
+	print test_set_x.get_value()
 
 	###SUPERVISED
-	datasets = load_data(dataset)
-	train_set_x, train_set_y = datasets[0]
-	valid_set_x, valid_set_y = datasets[1]
-	test_set_x, test_set_y = datasets[2]
+	# datasets = load_data(dataset)
+	# train_set_x, train_set_y = datasets[0]
+	# valid_set_x, valid_set_y = datasets[1]
+	# test_set_x, test_set_y = datasets[2]
 
 	n_ins = train_set_x.get_value(borrow=True).shape[1]
 
@@ -212,7 +213,7 @@ def run_Srbm_DAfinetune(pretraining_epochs=1, training_epochs=5,
 
 	training_fn, testing_fn = dafinetune.build_finetune_functions(
 	                                            train_set_x=train_set_x,
-	                                            valid_set_x=valid_set_x, 
+	                                            valid_set_x=None, 
 	                                            test_set_x=test_set_x,
 	                                            batch_size=batch_size)
 
