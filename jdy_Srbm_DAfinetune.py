@@ -56,7 +56,7 @@ def run_Srbm_DAfinetune(train_set_x, test_set_x,
 						hidden_layers_sizes=[1000, 500, 250, 30],
 						finetune_lr=0.1, pretrain_lr=0.1, 
 						k=1, batch_size=10, computer='work', 
-						numpy_rng=numpy.random.RandomState(None)):
+						numpy_rng=numpy.random.RandomState(None), testing=0):
 	
 	###UNSUPERVISED
 	# datasets = load_data_unsupervised(dataset)
@@ -103,26 +103,27 @@ def run_Srbm_DAfinetune(train_set_x, test_set_x,
 			### supervised learning just use DLT's neural network implementation
 
 	### TESTING 1
-	test_Srbm_DAfinetune(1, srbm, computer)
+	if testing:
+		test_Srbm_DAfinetune(1, srbm, computer)
 
-	### jdy code block
-	print srbm.params
-	print 'layer0'
-	print srbm.params[0].get_value()[0:3, 0:3], srbm.params[1].get_value()[0]
-	print 'layer1'
-	print srbm.params[2].get_value()[0:3, 0:3], srbm.params[3].get_value()[0]
-	print 'layer2'
-	print srbm.params[4].get_value()[0:3, 0:3], srbm.params[5].get_value()[0]
-	print ''
+		### jdy code block
+		print srbm.params
+		print 'layer0'
+		print srbm.params[0].get_value()[0:3, 0:3], srbm.params[1].get_value()[0]
+		print 'layer1'
+		print srbm.params[2].get_value()[0:3, 0:3], srbm.params[3].get_value()[0]
+		print 'layer2'
+		print srbm.params[4].get_value()[0:3, 0:3], srbm.params[5].get_value()[0]
+		print ''
 
-	print srbm.rbm_params
-	print 'layer0'
-	print srbm.rbm_params[0].get_value()[0:3, 0:3], type(srbm.rbm_params[1].get_value()[0]), srbm.rbm_params[2].get_value()[0]
-	print 'layer1'
-	print srbm.rbm_params[3].get_value()[0:3, 0:3], srbm.rbm_params[4].get_value()[0], srbm.rbm_params[5].get_value()[0]
-	print 'layer2'
-	print srbm.rbm_params[6].get_value()[0:3, 0:3], srbm.rbm_params[7].get_value()[0], srbm.rbm_params[8].get_value()[0]
-	###
+		print srbm.rbm_params
+		print 'layer0'
+		print srbm.rbm_params[0].get_value()[0:3, 0:3], type(srbm.rbm_params[1].get_value()[0]), srbm.rbm_params[2].get_value()[0]
+		print 'layer1'
+		print srbm.rbm_params[3].get_value()[0:3, 0:3], srbm.rbm_params[4].get_value()[0], srbm.rbm_params[5].get_value()[0]
+		print 'layer2'
+		print srbm.rbm_params[6].get_value()[0:3, 0:3], srbm.rbm_params[7].get_value()[0], srbm.rbm_params[8].get_value()[0]
+		###
 
 
 	print '... getting the pretraining functions'
@@ -133,7 +134,8 @@ def run_Srbm_DAfinetune(train_set_x, test_set_x,
 	                                            batch_size=batch_size,
 	                                            k=k)
 
-	testing = []  ###for testing
+	if testing:
+		testing_cost = []  ###for testing
 
 	print '... pre-training the model'
 	start_time = time.time()
@@ -150,7 +152,8 @@ def run_Srbm_DAfinetune(train_set_x, test_set_x,
 	        print 'Pre-training layer %i, epoch %d, cost ' % (i, epoch),
 	        print numpy.mean(c)
 
-	        testing.append(numpy.round(numpy.mean(c),9)) ###for testing
+	        if testing:
+	        	testing_cost.append(numpy.round(numpy.mean(c),9)) ###for testing
 
 
 	end_time = time.time()
@@ -159,27 +162,26 @@ def run_Srbm_DAfinetune(train_set_x, test_set_x,
 	                      ' ran for %.2fm' % ((end_time - start_time) / 60.))
 
 	###TESTING 2 
-	test_Srbm_DAfinetune(2, srbm, computer, testing)
+	if testing:
+		test_Srbm_DAfinetune(2, srbm, computer, testing_cost)
+		### jdy code block
+		print srbm.params
+		print 'layer0'
+		print srbm.params[0].get_value()[0:3, 0:3], srbm.params[1].get_value()[0]
+		print 'layer1'
+		print srbm.params[2].get_value()[0:3, 0:3], srbm.params[3].get_value()[0]
+		print 'layer2'
+		print srbm.params[4].get_value()[0:3, 0:3], srbm.params[5].get_value()[0]
+		print ''
 
-
-	### jdy code block
-	print srbm.params
-	print 'layer0'
-	print srbm.params[0].get_value()[0:3, 0:3], srbm.params[1].get_value()[0]
-	print 'layer1'
-	print srbm.params[2].get_value()[0:3, 0:3], srbm.params[3].get_value()[0]
-	print 'layer2'
-	print srbm.params[4].get_value()[0:3, 0:3], srbm.params[5].get_value()[0]
-	print ''
-
-	print srbm.rbm_params
-	print 'layer0'
-	print srbm.rbm_params[0].get_value()[0:3, 0:3], srbm.rbm_params[1].get_value()[0], srbm.rbm_params[2].get_value()[0]
-	print 'layer1'
-	print srbm.rbm_params[3].get_value()[0:3, 0:3], srbm.rbm_params[4].get_value()[0], srbm.rbm_params[5].get_value()[0]
-	print 'layer2'
-	print srbm.rbm_params[6].get_value()[0:3, 0:3], srbm.rbm_params[7].get_value()[0], srbm.rbm_params[8].get_value()[0]
-	###
+		print srbm.rbm_params
+		print 'layer0'
+		print srbm.rbm_params[0].get_value()[0:3, 0:3], srbm.rbm_params[1].get_value()[0], srbm.rbm_params[2].get_value()[0]
+		print 'layer1'
+		print srbm.rbm_params[3].get_value()[0:3, 0:3], srbm.rbm_params[4].get_value()[0], srbm.rbm_params[5].get_value()[0]
+		print 'layer2'
+		print srbm.rbm_params[6].get_value()[0:3, 0:3], srbm.rbm_params[7].get_value()[0], srbm.rbm_params[8].get_value()[0]
+		###
 
 	########################
 	# FINETUNING THE MODEL #
@@ -196,17 +198,18 @@ def run_Srbm_DAfinetune(train_set_x, test_set_x,
 				hidden_layers_sizes=hidden_layers_sizes)
 
 	###TESTING 3
-	test_Srbm_DAfinetune(3, dafinetune, computer)
+	if testing:
+		test_Srbm_DAfinetune(3, dafinetune, computer)
 
-	### jdy code block
-	print dafinetune.params
-	print 'layer0'
-	print dafinetune.params[0].get_value()[0:3, 0:3]
-	print 'layer1'
-	print dafinetune.params[2].get_value()[0:3, 0:3]
-	print 'layer2'
-	print dafinetune.params[4].get_value()[0:3, 0:3]
-	###
+		### jdy code block
+		print dafinetune.params
+		print 'layer0'
+		print dafinetune.params[0].get_value()[0:3, 0:3]
+		print 'layer1'
+		print dafinetune.params[2].get_value()[0:3, 0:3]
+		print 'layer2'
+		print dafinetune.params[4].get_value()[0:3, 0:3]
+		###
 
 	# get the training, validation and testing function for the model
 	print '... getting the finetuning functions'
@@ -220,7 +223,8 @@ def run_Srbm_DAfinetune(train_set_x, test_set_x,
 	print '... finetuning the model'
 	start_time = time.time() 
 
-	testing2 = [] ###for testing
+	if testing:
+		testing2_cost = [] ###for testing
 
 	# for each epoch
 	for epoch in xrange(training_epochs):
@@ -244,12 +248,14 @@ def run_Srbm_DAfinetune(train_set_x, test_set_x,
 	        'MSE %0.3f' % (epoch, numpy.mean(c), numpy.mean(e), numpy.mean(te)))
 
 	    ###for testing
-	    testing2.append(numpy.round(numpy.mean(c),3))
-	    testing2.append(numpy.round(numpy.mean(te),3))
+	    if testing:
+	    	testing2_cost.append(numpy.round(numpy.mean(c),3))
+	    	testing2_cost.append(numpy.round(numpy.mean(te),3))
 	
 
 	###TESTING 4
-	test_Srbm_DAfinetune(4, None, computer, testing2)       
+	if testing:
+		test_Srbm_DAfinetune(4, None, computer, testing2_cost)       
 	        
 	end_time = time.time()
 	print >> sys.stderr, ('The fine tuning code for file ' +
