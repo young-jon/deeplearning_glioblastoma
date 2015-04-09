@@ -23,7 +23,7 @@ def shared_dataset_unsupervised(data_x, borrow=True):
                                 dtype=theano.config.floatX),
                                 borrow=borrow)
         return shared_x
-        
+
 
 
 def jdy_load_data(data_path, shared=False):
@@ -141,7 +141,8 @@ def load_data(dataset):
 
 
 def load_data_unsupervised(dataset, splits=3):
-    ''' Loads the unsupervised dataset (there are only x values for train, validation, and test sets). This function is untested.
+    ''' Loads the unsupervised dataset (there are only x values for train, validation, and test sets). This function is untested 
+    and does not work with mnist.pkl.gz, but does work with old tcga lung cancer data (file.pkl.gz)
 
     :type dataset: string
     :param dataset: the path to the dataset in quotes.
