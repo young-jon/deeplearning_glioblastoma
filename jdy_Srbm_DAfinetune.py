@@ -226,6 +226,9 @@ def run_Srbm_DAfinetune(train_set_x, test_set_x,
 	if testing:
 		testing2_cost = [] ###for testing
 
+
+	to_disk = {'train_cost': [], 'train_mse': [], 'test_mse': []}
+
 	# for each epoch
 	for epoch in xrange(training_epochs):
 	    c = []  #list to collect costs
@@ -247,6 +250,10 @@ def run_Srbm_DAfinetune(train_set_x, test_set_x,
 	    print ('Training epoch %d, Train cost %0.3f, Train MSE %0.3f, Test '
 	        'MSE %0.3f' % (epoch, numpy.mean(c), numpy.mean(e), numpy.mean(te)))
 
+	    to_disk['train_cost'].append(numpy.mean(c))
+	    to_disk['train_mse'].append(numpy.mean(e))
+	    to_disk['test_mse'].append(numpy.mean(te))
+
 	    ###for testing
 	    if testing:
 	    	testing2_cost.append(numpy.round(numpy.mean(c),3))
@@ -262,6 +269,12 @@ def run_Srbm_DAfinetune(train_set_x, test_set_x,
 	                      os.path.split(__file__)[1] +
 	                      ' ran for %.2fm' % ((end_time - start_time)
 	                                          / 60.))
+
+	print to_disk
+	to_disk['params'] = [hidden_layers_sizes, pretrain_lr, finetune_lr, 
+							pretraining_epochs, training_epochs, batch_size, k]
+	print to_disk
+	return to_disk
 
 
 if __name__ == '__main__':
