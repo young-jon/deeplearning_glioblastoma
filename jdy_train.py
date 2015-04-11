@@ -4,6 +4,7 @@ import time
 import os
 import sys
 import gzip
+import csv
 import pandas as pd
 from sklearn import cross_validation
 from jdy_Srbm_DAfinetune import run_Srbm_DAfinetune
@@ -12,13 +13,13 @@ from jdy_utils import jdy_load_data, shared_dataset_unsupervised
 
 '''SETUP EXPERIMENT HYPERPARAMETERS'''
 
-hidden_layers_sizes = [1000, 500, 250, 30]
+hidden_layers_sizes = [4000, 2000, 1000, 800, 600, 400, 300, 200, 100]
 pretrain_lr = 0.01
 finetune_lr = 0.01
 pretraining_epochs = 1
 training_epochs = 5
 batch_size = 10
-data_path = '/Users/jdy10/Data/data_after_fs/data_2784.pkl'
+data_path = '/Users/jdy10/Data/data_after_fs/data_15340.pkl'
 cv_indices_path = '/Users/jdy10/Data/cv_indices/cv_6108_6.pkl'
 output_folder_path = '/Users/jdy10/Output/Srbm_DAfinetune/cv/'
 
@@ -36,6 +37,7 @@ if not testing:
 	test_mse=[]; train_mse=[]; train_cost=[]
 	### get test set and train set as two numpy.array
 	train, test = jdy_load_data(data_path)
+	dim = train.shape[1]
 
 	### get indices to split train set into train_cv and valid_cv
 	f = open(cv_indices_path, 'rb') 
@@ -49,7 +51,8 @@ if not testing:
 		print 'IDX:', i, train_cv_indices, valid_cv_indices
 		train_set_x = shared_dataset_unsupervised(train[train_cv_indices])
 		test_set_x = shared_dataset_unsupervised(train[valid_cv_indices])
-		print 'CV:', i, train_set_x.get_value().shape, test_set_x.get_value().shape
+		print ( 'CV:' + str(i) + ' train:' + str(train_set_x.get_value().shape)+ 
+							' test:' + str(test_set_x.get_value().shape) )
 
 		srbm = run_Srbm_DAfinetune(train_set_x=train_set_x, 
 									test_set_x=test_set_x, 
@@ -68,6 +71,15 @@ if not testing:
 		test_mse.append(srbm['test_mse'])
 		train_mse.append(srbm['train_mse'])
 		train_cost.append(srbm['train_cost'])
+
+		### write test_mse to file
+		if i == 0:
+			name = 'test_mse_' + str(dim) + str(srbm['params']).replace(' ','').replace("'","")
+			file_path = output_folder_path + name + time.strftime("%m%d%Y") + '.csv'
+
+		with open(file_path, 'a') as f:
+			writer=csv.writer(f)
+			writer.writerow(srbm['test_mse'])
 
 
 	end_time = time.time()
@@ -92,7 +104,7 @@ if not testing:
 	df_to_disk['error_type'] = ['test_mse', 'train_mse', 'train_cost']
 
 	### create file name and save as .csv
-	name = str(srbm['params']).replace(' ','').replace("'","")
+	name = str(dim) + str(srbm['params']).replace(' ','').replace("'","")
 	file_path = output_folder_path + name + time.strftime("%m%d%Y") + '.csv'
 	df_to_disk.to_csv(file_path)
 
