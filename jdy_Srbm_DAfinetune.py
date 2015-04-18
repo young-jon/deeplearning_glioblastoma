@@ -270,7 +270,6 @@ def run_Srbm_DAfinetune(train_set_x, test_set_x,
 	                      ' ran for %.2fm' % ((end_time - start_time)
 	                                          / 60.))
 
-	print to_disk
 	to_disk['params'] = [hidden_layers_sizes, pretrain_lr, finetune_lr, 
 							pretraining_epochs, training_epochs, batch_size, k]
 	print to_disk

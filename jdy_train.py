@@ -20,7 +20,7 @@ finetune_lr = 0.005
 pretraining_epochs = 1
 training_epochs = 10
 batch_size = 5
-data_path = '/Users/jdy10/Data/v2_tcga_data/data_after_fs/data_9476.pkl'  ### this data is not randomized
+data_path = '/Users/jdy10/Data/v2_tcga_data/data_after_fs/data_7160.pkl'  ### this data is not randomized
 train_i_path = '/Users/jdy10/Data/v2_tcga_data/test_train_splits/85_15/train21_indices_rand_use.pkl'  ### randomized train indices (from original split)
 test_i_path = '/Users/jdy10/Data/v2_tcga_data/test_train_splits/85_15/test21_indices_rand_use.pkl'   ### randomized test indices
 cv_indices_path = '/Users/jdy10/Data/v2_tcga_data/test_train_splits/85_15/cv_indices/cv_6400_8.pkl'  ### these indices split the train data
@@ -55,7 +55,7 @@ if not testing:
 
 	### run run_Srbm_DAfinetune for each k fold
 	start_time = time.time()
-	for i, (train_cv_indices, valid_cv_indices) in enumerate(cv_indices[0:3]):   ### change this indexing to do all
+	for i, (train_cv_indices, valid_cv_indices) in enumerate(cv_indices):   
 		print 'IDX:', i, train_cv_indices, valid_cv_indices
 		train_set_x = shared_dataset_unsupervised(train[train_cv_indices])
 		test_set_x = shared_dataset_unsupervised(train[valid_cv_indices])
@@ -97,9 +97,6 @@ if not testing:
 
 
 	### for collecting errors
-	print test_mse
-	print train_mse
-	print train_cost
 	test_mse_avg = numpy.asarray(test_mse).mean(axis=0)
 	train_mse_avg = numpy.asarray(train_mse).mean(axis=0)
 	train_cost_avg = numpy.asarray(train_cost).mean(axis=0)
