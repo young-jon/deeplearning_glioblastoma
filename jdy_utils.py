@@ -26,9 +26,9 @@ def shared_dataset_unsupervised(data_x, borrow=True):
 
 
 
-def jdy_load_data(data_path, shared=False):
-    test_i_path = '/Users/jdy10/Data/test_train_splits/test_indices_rand.pkl'
-    train_i_path = '/Users/jdy10/Data/test_train_splits/train_indices_rand.pkl'
+def jdy_load_data(data_path, train_i_path, test_i_path, shared=False):
+    # test_i_path = '/Users/jdy10/Data/test_train_splits/test_indices_rand.pkl'
+    # train_i_path = '/Users/jdy10/Data/test_train_splits/train_indices_rand.pkl'
 
     f = open(test_i_path, 'rb')
     test_i_rand = cPickle.load(f)
