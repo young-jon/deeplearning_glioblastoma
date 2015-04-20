@@ -15,11 +15,11 @@ numpy.set_printoptions(threshold=700)
 
 '''SETUP EXPERIMENT HYPERPARAMETERS'''
 
-hidden_layers_sizes = [1] # [1200, 400, 100]
+hidden_layers_sizes = [1200, 400, 100]
 pretrain_lr = 0.005
 finetune_lr = 0.005
 pretraining_epochs = 1
-training_epochs = 1 #30   
+training_epochs = 30   
 batch_size = 10
 data_path = '/Users/jdy10/Data/v2_tcga_data/data_after_fs/data_7160.pkl'  ### this data is not randomized
 train_i_path = '/Users/jdy10/Data/v2_tcga_data/test_train_splits/85_15/train21_indices_rand_use.pkl'  ### randomized train indices (from original split)
@@ -40,11 +40,30 @@ computer = 'work'  ### doesn't matter unless testing
 if not testing:
 	### new
 	while True:
-		batch_size = random.choice([5,10,20,40,50,100])
-		pretraining_epochs = random.choice([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20])
-		pretraining_epochs=1 ###
-		pretrain_lr = 10** -(random.uniform(1.5, 5.5))
-		finetune_lr = 10** -(random.uniform(1.5, 5.5))
+		choice = random.choice([1,2])
+		if choice == 1:
+			pretrain_lr = 0.00011502592279277739
+			finetune_lr = 0.011003312912625188
+			pretraining_epochs = 12
+			batch_size = 20
+		elif choice == 2:
+			pretrain_lr = 0.003025607848026375
+			finetune_lr = 0.003260677959656419
+			pretraining_epochs = 14
+			batch_size = 10
+		num_layers = random.choice([2,3,4,5,6,7])
+		hidden_layers_sizes = [500] * num_layers
+		hidden_layers_sizes[0] = random.randrange(500,2501)
+		hidden_layers_sizes[1] = random.randrange(100,hidden_layers_sizes[0] - 100)
+		if num_layers > 2:
+			for i in range(2, num_layers):
+				hidden_layers_sizes[i] = random.randrange(10, hidden_layers_sizes[i-1] + 1)
+		print hidden_layers_sizes
+
+		# batch_size = random.choice([5,10,20,40,50,100])
+		# pretraining_epochs = random.choice([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20])
+		# pretrain_lr = 10** -(random.uniform(1.5, 5.5))
+		# finetune_lr = 10** -(random.uniform(1.5, 5.5))
 		### end new
 
 		### initialize containers for writing to file
