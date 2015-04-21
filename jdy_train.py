@@ -25,7 +25,7 @@ data_path = '/Users/jdy10/Data/v2_tcga_data/data_after_fs/data_7160.pkl'  ### th
 train_i_path = '/Users/jdy10/Data/v2_tcga_data/test_train_splits/85_15/train21_indices_rand_use.pkl'  ### randomized train indices (from original split)
 test_i_path = '/Users/jdy10/Data/v2_tcga_data/test_train_splits/85_15/test21_indices_rand_use.pkl'   ### randomized test indices
 cv_indices_path = '/Users/jdy10/Data/v2_tcga_data/test_train_splits/85_15/cv_indices/cv_6400_8.pkl'  ### these indices split the train data
-output_folder_path = '/Users/jdy10/Output/Srbm_DAfinetune/cv/4_17_15/'
+output_folder_path = '/Users/jdy10/Output/Srbm_DAfinetune/cv/4_21_15/'   ### CHANGE THIS!!!
 
 k = 1  ### don't change this for now
 numpy_rng = numpy.random.RandomState(None)  ### change None to 123 for debugging
@@ -35,30 +35,57 @@ computer = 'work'  ### doesn't matter unless testing
 
 '''END SETUP'''
 
-
+hid_layer_list = [
+ [400, 200, 20],
+ [400, 200, 100],
+ [400, 200, 180],
+ [1400, 200, 20],
+ [1400, 200, 100],
+ [1400, 200, 180],
+ [1400, 600, 20],
+ [1400, 600, 100],
+ [1400, 600, 180],
+ [1400, 1000, 20],
+ [1400, 1000, 100],
+ [1400, 1000, 180],
+ [2400, 200, 20],
+ [2400, 200, 100],
+ [2400, 200, 180],
+ [2400, 600, 20],
+ [2400, 600, 100],
+ [2400, 600, 180],
+ [2400, 1000, 20],
+ [2400, 1000, 100],
+ [2400, 1000, 180]]
 
 if not testing:
 	### new
-	while True:
-		choice = random.choice([1,2])
-		if choice == 1:
-			pretrain_lr = 0.00011502592279277739
-			finetune_lr = 0.011003312912625188
-			pretraining_epochs = 12
-			batch_size = 20
-		elif choice == 2:
-			pretrain_lr = 0.003025607848026375
-			finetune_lr = 0.003260677959656419
-			pretraining_epochs = 14
-			batch_size = 10
-		num_layers = random.choice([2,3,4,5,6,7])
-		hidden_layers_sizes = [500] * num_layers
-		hidden_layers_sizes[0] = random.randrange(500,2501)
-		hidden_layers_sizes[1] = random.randrange(100,hidden_layers_sizes[0] - 100)
-		if num_layers > 2:
-			for i in range(2, num_layers):
-				hidden_layers_sizes[i] = random.randrange(10, hidden_layers_sizes[i-1] + 1)
-		print hidden_layers_sizes
+	for h in hid_layer_list:
+		hidden_layers_sizes = h
+		pretrain_lr = 0.00011502592279277739
+		finetune_lr = 0.011003312912625188
+		pretraining_epochs = 12
+		batch_size = 20
+
+		# choice = random.choice([1,2])
+		# if choice == 1:
+		# 	pretrain_lr = 0.00011502592279277739
+		# 	finetune_lr = 0.011003312912625188
+		# 	pretraining_epochs = 12
+		# 	batch_size = 20
+		# elif choice == 2:
+		# 	pretrain_lr = 0.003025607848026375
+		# 	finetune_lr = 0.003260677959656419
+		# 	pretraining_epochs = 14
+		# 	batch_size = 10
+		# num_layers = random.choice([2,3,4,5,6,7])
+		# hidden_layers_sizes = [500] * num_layers
+		# hidden_layers_sizes[0] = random.randrange(500,2501)
+		# hidden_layers_sizes[1] = random.randrange(100,hidden_layers_sizes[0] - 100)
+		# if num_layers > 2:
+		# 	for i in range(2, num_layers):
+		# 		hidden_layers_sizes[i] = random.randrange(10, hidden_layers_sizes[i-1] + 1)
+		# print hidden_layers_sizes
 
 		# batch_size = random.choice([5,10,20,40,50,100])
 		# pretraining_epochs = random.choice([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20])
