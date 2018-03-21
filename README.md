@@ -1,7 +1,9 @@
 # deeplearning_glioblastoma
 
-Code used for my paper:  _Unsupervised deep learning reveals prognostically relevant subtypes of glioblastoma_ 
-https://www.ncbi.nlm.nih.gov/pubmed/28984190
+Deep learning code used for my paper:  _Unsupervised deep learning reveals prognostically relevant subtypes of glioblastoma_ 
+https://www.ncbi.nlm.nih.gov/pubmed/28984190 
+
+Clustering code used for the paper may be added at a later date.
 
 Code forked from Deep Learning Tutorials:  https://github.com/lisa-lab/DeepLearningTutorials 
 
