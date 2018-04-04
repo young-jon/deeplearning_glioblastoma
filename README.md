@@ -3,6 +3,8 @@
 Deep learning code used for my paper:  _Unsupervised deep learning reveals prognostically relevant subtypes of glioblastoma_ 
 https://www.ncbi.nlm.nih.gov/pubmed/28984190 (Clustering code used for the paper may be added at a later date)
 
+Imported from my private bitbucket account.
+
 Code forked from Deep Learning Tutorials:  https://github.com/lisa-lab/DeepLearningTutorials 
 
 Main model used in paper was a deep belief network (DBN) or, as I call it, 
